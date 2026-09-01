@@ -1,13 +1,9 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.py"
-    }
-  ],
-  "functions": {
-    "api/index.py": {
-      "includeFiles": "static/**"
-    }
-  }
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/admin", "destination": "/static/admin.html" },
+    { "source": "/privacy", "destination": "/static/privacy.html" },
+    { "source": "/static/(.*)", "destination": "/static/$1" },
+    { "source": "/", "destination": "/static/index.html" }
+  ]
 }
