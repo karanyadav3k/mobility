@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GatiConnect - Admin Master Control Center</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --admin-bg: #0f172a;
+            --admin-card: #1e293b;
+            --admin-card-hover: #334155;
+            --admin-border: #334155;
+            --admin-primary: #38bdf8;
+            --admin-success: #4ade80;
+            --admin-warning: #fbbf24;
+            --admin-danger: #f87171;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif;
+        }
+
+        body {
+            background-color: var(--admin-bg);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 1.2rem;
+        }
+
+        /* HEADER */
+        .admin-header {
+            background: #090d16;
+            border-bottom: 1px solid var(--admin-border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-logo-box {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+        }
+
+        .admin-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .admin-sub {
+            font-size: 0.72rem;
+            color: var(--admin-primary);
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .btn-refresh {
+            background: #1e293b;
+            color: var(--text-main);
+            border: 1px solid var(--admin-border);
+            padding: 0.45rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+        }
+
+        .btn-refresh:hover { background: #334155; }
+
+        .btn-back-app {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 0.45rem 0.95rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* KPI METRIC CARDS */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .kpi-card {
+            background: var(--admin-card);
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            padding: 1.1rem;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .kpi-card:hover { transform: translateY(-2px); }
+
+        .kpi-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem; }
+        .kpi-val { font-size: 1.6rem; font-weight: 800; color: white; }
+        .kpi-sub { font-size: 0.72rem; color: var(--admin-primary); margin-top: 0.2rem; }
+
+        .kpi-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .icon-gmv { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+        .icon-comm { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
+        .icon-escrow { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+        .icon-users { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+
+        /* TABS NAVIGATION */
+        .admin-nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1.5px solid var(--admin-border);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.2rem;
+            overflow-x: auto;
+        }
+
+        .a-tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .a-tab-btn:hover { background: #1e293b; color: white; }
+        .a-tab-btn.active {
+            background: #1e293b;
+            color: var(--admin-primary);
+            border-color: #38bdf8;
+        }
+
+        /* DATA TABLES */
+        .table-wrap {
+            background: var(--admin-card);
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            text-align: left;
+        }
+
+        .data-table th {
+            background: #182234;
+            color: var(--text-muted);
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--admin-border);
+        }
+
+        .data-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #293548;
+            color: #cbd5e1;
+        }
+
+        .data-table tr:hover td {
+            background: #243044;
+        }
+
+        .badge-pill {
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .badge-verified { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
+        .badge-unverified { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+        .badge-online { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
+        .badge-offline { background: rgba(248, 113, 113, 0.15); color: #f87171; }
+        .badge-held { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+        .badge-released { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
+        .badge-refunded { background: rgba(129, 140, 248, 0.15); color: #a5b4fc; border: 1px solid rgba(129, 140, 248, 0.3); }
+
+        .btn-action-sm {
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-refund { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .btn-refund:hover { background: #dc2626; color: white; }
+
+        .btn-release { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .btn-release:hover { background: #16a34a; color: white; }
+
+        .btn-approve { background: #16a34a; color: white; }
+        .btn-approve:hover { background: #15803d; }
+
+        .btn-toggle-kyc { background: #0284c7; color: white; }
+
+        /* FORM & SETTINGS */
+        .settings-card {
+            background: var(--admin-card);
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            padding: 1.4rem;
+            max-width: 650px;
+        }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem; color: #cbd5e1; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 0.6rem 0.85rem;
+            background: #0f172a;
+            border: 1px solid var(--admin-border);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--admin-primary); }
+
+        .btn-broadcast {
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 550px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP ADMIN HEADER -->
+    <header class="admin-header">
+        <div class="container header-wrap">
+            <div class="admin-brand">
+                <div class="admin-logo-box"><i class="fa-solid fa-shield-halved"></i></div>
+                <div>
+                    <h1 class="admin-title">GatiConnect Admin Hub</h1>
+                    <div class="admin-sub">👑 Business Owner & Backoffice Control Panel</div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button class="btn-refresh" onclick="loadAllAdminData()">
+                    <i class="fa-solid fa-rotate"></i> Refresh Data
+                </button>
+                <a href="/" class="btn-back-app">
+                    <i class="fa-solid fa-arrow-left"></i> Open User App
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- 4 KPI FINANCIAL & OPERATIONS CARDS -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div>
+                    <div class="kpi-label">Gross Merchandise Value (GMV)</div>
+                    <div class="kpi-val" id="metricGmv">₹0.00</div>
+                    <div class="kpi-sub">कुल लेनदेन व कारोबार</div>
+                </div>
+                <div class="kpi-icon icon-gmv"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+            </div>
+
+            <div class="kpi-card">
+                <div>
+                    <div class="kpi-label">Platform Revenue (7%)</div>
+                    <div class="kpi-val" style="color:#4ade80;" id="metricCommission">₹0.00</div>
+                    <div class="kpi-sub">प्लेटफ़ॉर्म कमीशन कमाई</div>
+                </div>
+                <div class="kpi-icon icon-comm"><i class="fa-solid fa-chart-line"></i></div>
+            </div>
+
+            <div class="kpi-card">
+                <div>
+                    <div class="kpi-label">Escrow In Custody</div>
+                    <div class="kpi-val" style="color:#fbbf24;" id="metricEscrow">₹0.00</div>
+                    <div class="kpi-sub">सुरक्षित लॉक एस्क्रो बैलेंस</div>
+                </div>
+                <div class="kpi-icon icon-escrow"><i class="fa-solid fa-lock"></i></div>
+            </div>
+
+            <div class="kpi-card">
+                <div>
+                    <div class="kpi-label">Users & Online Drivers</div>
+                    <div class="kpi-val" id="metricUsers">0 (0 Online)</div>
+                    <div class="kpi-sub" id="metricTripsActive">0 Active Trips Listed</div>
+                </div>
+                <div class="kpi-icon icon-users"><i class="fa-solid fa-users"></i></div>
+            </div>
+        </div>
+
+        <!-- NAVIGATION TABS -->
+        <div class="admin-nav-tabs">
+            <button class="a-tab-btn active" id="tabBtn-users" onclick="switchAdminTab('USERS')">
+                <i class="fa-solid fa-users-gear"></i> यूज़र्स व KYC प्रबंधन (Users)
+            </button>
+            <button class="a-tab-btn" id="tabBtn-bookings" onclick="switchAdminTab('BOOKINGS')">
+                <i class="fa-solid fa-route"></i> लाइव ट्रिप्स व विवाद समाधान (Disputes)
+            </button>
+            <button class="a-tab-btn" id="tabBtn-payouts" onclick="switchAdminTab('PAYOUTS')">
+                <i class="fa-solid fa-money-bill-transfer"></i> ड्राइवर निकासी अनुरोध (Payouts Queue)
+            </button>
+            <button class="a-tab-btn" id="tabBtn-settings" onclick="switchAdminTab('SETTINGS')">
+                <i class="fa-solid fa-sliders"></i> प्लेटफ़ॉर्म सेटिंग्स व ब्रॉडकास्ट (Settings)
+            </button>
+        </div>
+
+        <!-- ================= TAB 1: USERS & KYC DIRECTORY ================= -->
+        <div id="tabContent-users" class="tab-pane">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Full Name</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                            <th>Trust Score</th>
+                            <th>Aadhaar KYC</th>
+                            <th>DL Status</th>
+                            <th>Wallet (₹)</th>
+                            <th>Duty</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUsersTbody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= TAB 2: LIVE BOOKINGS & DISPUTE RESOLUTION ================= -->
+        <div id="tabContent-bookings" class="tab-pane" style="display:none;">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Route & Category</th>
+                            <th>Customer</th>
+                            <th>Driver / Carrier</th>
+                            <th>Agreed Fare</th>
+                            <th>Booking Status</th>
+                            <th>Escrow Custody</th>
+                            <th>OTPs (Start / End)</th>
+                            <th>Dispute Resolution Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminBookingsTbody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: DRIVER PAYOUT QUEUE ================= -->
+        <div id="tabContent-payouts" class="tab-pane" style="display:none;">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Payout ID</th>
+                            <th>Driver Name</th>
+                            <th>Phone</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>UPI / Bank Address</th>
+                            <th>Reference ID</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminPayoutsTbody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= TAB 4: SETTINGS & BROADCAST ================= -->
+        <div id="tabContent-settings" class="tab-pane" style="display:none;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; flex-wrap:wrap;">
+                
+                <!-- BROADCAST ANNOUNCEMENT -->
+                <div class="settings-card">
+                    <h3 style="font-size:1.05rem; margin-bottom:0.8rem; color:#38bdf8;">
+                        <i class="fa-solid fa-bullhorn"></i> Broadcast Push Announcement
+                    </h3>
+                    <p style="font-size:0.78rem; color:#94a3b8; margin-bottom:1rem;">
+                        Send instant push notification banner to all online commuters and drivers:
+                    </p>
+                    <form onsubmit="handleBroadcastSubmit(event)">
+                        <div class="form-group">
+                            <label>Announcement Title:</label>
+                            <input type="text" id="bcTitle" value="🎉 Special Route Bonus Active!" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Message Body:</label>
+                            <textarea id="bcMessage" rows="3" required>Get +₹50 bonus on all Bhopal ➔ Indore trips today!</textarea>
+                        </div>
+                        <button type="submit" class="btn-broadcast">
+                            <i class="fa-solid fa-paper-plane"></i> Send Push Announcement
+                        </button>
+                    </form>
+                </div>
+
+                <!-- PLATFORM COMMISSION & SYSTEM HEALTH -->
+                <div class="settings-card">
+                    <h3 style="font-size:1.05rem; margin-bottom:0.8rem; color:#4ade80;">
+                        <i class="fa-solid fa-server"></i> Platform Configuration & Health
+                    </h3>
+                    <div style="font-size:0.82rem; color:#cbd5e1; display:flex; flex-direction:column; gap:0.75rem;">
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #334155; padding-bottom:0.4rem;">
+                            <span>Platform Take Rate:</span>
+                            <strong style="color:#4ade80;">7.0% Flat</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #334155; padding-bottom:0.4rem;">
+                            <span>Database Engine:</span>
+                            <strong>SQLite / PostgreSQL Hybrid</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #334155; padding-bottom:0.4rem;">
+                            <span>Fast2SMS Real Sim Gateway:</span>
+                            <span id="cfgSmsBadge" class="badge-pill badge-unverified">Ready (Simulation)</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #334155; padding-bottom:0.4rem;">
+                            <span>Razorpay Escrow Gateway:</span>
+                            <span id="cfgRzpBadge" class="badge-pill badge-unverified">Ready (Simulation)</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span>Active System Version:</span>
+                            <strong>v4.5.0 Production</strong>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await loadAllAdminData();
+        });
+
+        async function loadAllAdminData() {
+            await loadAdminMetrics();
+            await loadAdminUsers();
+            await loadAdminBookings();
+            await loadAdminPayouts();
+        }
+
+        async function loadAdminMetrics() {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/metrics`);
+                const m = await res.json();
+                document.getElementById("metricGmv").textContent = `₹${m.total_gmv.toFixed(2)}`;
+                document.getElementById("metricCommission").textContent = `₹${m.platform_commission_earned.toFixed(2)}`;
+                document.getElementById("metricEscrow").textContent = `₹${m.escrow_held_in_custody.toFixed(2)}`;
+                document.getElementById("metricUsers").textContent = `${m.total_users} (${m.online_drivers} Online)`;
+                document.getElementById("metricTripsActive").textContent = `${m.active_trip_listings} Active Trips | ${m.completed_bookings} Completed`;
+            } catch (err) {
+                console.error("Admin metrics error:", err);
+            }
+        }
+
+        async function loadAdminUsers() {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/users`);
+                const users = await res.json();
+                const tbody = document.getElementById("adminUsersTbody");
+                tbody.innerHTML = users.map(u => {
+                    const aadhaarBadge = u.is_aadhaar_verified ? `<span class="badge-pill badge-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>` : `<span class="badge-pill badge-unverified">Unverified</span>`;
+                    const dlBadge = u.is_dl_verified ? `<span class="badge-pill badge-verified">DL Verified</span>` : `<span class="badge-pill badge-unverified">No DL</span>`;
+                    const onlineBadge = u.is_online ? `<span class="badge-pill badge-online">🟢 Online</span>` : `<span class="badge-pill badge-offline">🔴 Offline</span>`;
+                    
+                    return `
+                        <tr>
+                            <td><strong>#${u.id}</strong></td>
+                            <td><strong>${u.full_name}</strong></td>
+                            <td>+91 ${u.phone_number}</td>
+                            <td><span style="font-size:0.75rem; color:#94a3b8;">${u.roles || 'USER'}</span></td>
+                            <td><strong style="color:#38bdf8;">${u.trust_score}/100</strong></td>
+                            <td>${aadhaarBadge}</td>
+                            <td>${dlBadge}</td>
+                            <td><strong>₹${u.wallet_balance.toFixed(2)}</strong></td>
+                            <td>${onlineBadge}</td>
+                            <td>
+                                <button class="btn-action-sm btn-toggle-kyc" onclick="toggleUserKyc(${u.id})">
+                                    <i class="fa-solid fa-user-check"></i> Toggle KYC
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+            } catch (err) {
+                console.error("Admin users error:", err);
+            }
+        }
+
+        async function toggleUserKyc(userId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/users/${userId}/toggle-kyc`, { method: "PUT" });
+                const data = await res.json();
+                alert(data.message);
+                await loadAllAdminData();
+            } catch (err) {
+                console.error("Toggle KYC error:", err);
+            }
+        }
+
+        async function loadAdminBookings() {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/bookings`);
+                const bookings = await res.json();
+                const tbody = document.getElementById("adminBookingsTbody");
+                
+                if (bookings.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:1.5rem; color:#94a3b8;">No bookings found.</td></tr>`;
+                    return;
+                }
+                
+                tbody.innerHTML = bookings.map(b => {
+                    let escrowBadge = "";
+                    if (b.escrow_status === "HELD") escrowBadge = `<span class="badge-pill badge-held"><i class="fa-solid fa-lock"></i> HELD (₹${b.agreed_price})</span>`;
+                    else if (b.escrow_status === "RELEASED") escrowBadge = `<span class="badge-pill badge-released"><i class="fa-solid fa-check"></i> RELEASED</span>`;
+                    else if (b.escrow_status === "REFUNDED") escrowBadge = `<span class="badge-pill badge-refunded"><i class="fa-solid fa-rotate-left"></i> REFUNDED</span>`;
+                    
+                    let disputeActions = "";
+                    if (b.booking_status !== "CANCELLED" && b.booking_status !== "COMPLETED") {
+                        disputeActions = `
+                            <div style="display:flex; gap:0.35rem;">
+                                <button class="btn-action-sm btn-refund" onclick="adminForceRefund(${b.id})">
+                                    <i class="fa-solid fa-rotate-left"></i> Force Refund
+                                </button>
+                                <button class="btn-action-sm btn-release" onclick="adminForceRelease(${b.id})">
+                                    <i class="fa-solid fa-circle-check"></i> Force Release
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        disputeActions = `<span style="font-size:0.72rem; color:#94a3b8;">Resolved</span>`;
+                    }
+                    
+                    return `
+                        <tr>
+                            <td><strong>#${b.id}</strong></td>
+                            <td><strong>${b.route}</strong> <span style="font-size:0.7rem; color:#94a3b8;">[${b.category}]</span></td>
+                            <td>${b.requester_name} (+91 ${b.requester_phone})</td>
+                            <td>${b.driver_name} (+91 ${b.driver_phone})</td>
+                            <td><strong style="color:#4ade80;">₹${b.agreed_price.toFixed(2)}</strong></td>
+                            <td><strong>${b.booking_status}</strong></td>
+                            <td>${escrowBadge}</td>
+                            <td><code>${b.handover_otp || '-'} / ${b.completion_otp || '-'}</code></td>
+                            <td>${disputeActions}</td>
+                        </tr>
+                    `;
+                }).join("");
+            } catch (err) {
+                console.error("Admin bookings error:", err);
+            }
+        }
+
+        async function adminForceRefund(bookingId) {
+            if (!confirm(`Are you sure you want to FORCE REFUND 100% of Booking #${bookingId} to the customer?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/bookings/${bookingId}/force-refund`, { method: "POST" });
+                const data = await res.json();
+                alert(`✅ ${data.message}`);
+                await loadAllAdminData();
+            } catch (err) {
+                console.error("Force refund error:", err);
+            }
+        }
+
+        async function adminForceRelease(bookingId) {
+            if (!confirm(`Are you sure you want to FORCE RELEASE escrow payout for Booking #${bookingId} to the driver?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/bookings/${bookingId}/force-release`, { method: "POST" });
+                const data = await res.json();
+                alert(`✅ ${data.message}`);
+                await loadAllAdminData();
+            } catch (err) {
+                console.error("Force release error:", err);
+            }
+        }
+
+        async function loadAdminPayouts() {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/payouts`);
+                const payouts = await res.json();
+                const tbody = document.getElementById("adminPayoutsTbody");
+                
+                if (payouts.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:1.5rem; color:#94a3b8;">No payout withdrawal requests.</td></tr>`;
+                    return;
+                }
+                
+                tbody.innerHTML = payouts.map(p => {
+                    let actionBtn = (p.status === "PROCESSED") ? `
+                        <button class="btn-action-sm btn-approve" onclick="adminApprovePayout(${p.id})">
+                            <i class="fa-solid fa-check"></i> Mark Settled
+                        </button>
+                    ` : `<span style="color:#4ade80; font-weight:700; font-size:0.75rem;"><i class="fa-solid fa-circle-check"></i> Settled</span>`;
+                    
+                    return `
+                        <tr>
+                            <td><strong>#${p.id}</strong></td>
+                            <td><strong>${p.user_name}</strong></td>
+                            <td>+91 ${p.user_phone}</td>
+                            <td><strong style="color:#4ade80;">₹${p.amount.toFixed(2)}</strong></td>
+                            <td>${p.payout_method}</td>
+                            <td><code>${p.payout_address}</code></td>
+                            <td><span style="font-size:0.72rem; color:#94a3b8;">${p.reference_id}</span></td>
+                            <td><strong>${p.status}</strong></td>
+                            <td>${actionBtn}</td>
+                        </tr>
+                    `;
+                }).join("");
+            } catch (err) {
+                console.error("Admin payouts error:", err);
+            }
+        }
+
+        async function adminApprovePayout(payoutId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/payouts/${payoutId}/approve`, { method: "POST" });
+                const data = await res.json();
+                alert(`🎉 ${data.message}`);
+                await loadAllAdminData();
+            } catch (err) {
+                console.error("Approve payout error:", err);
+            }
+        }
+
+        async function handleBroadcastSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById("bcTitle").value;
+            const message = document.getElementById("bcMessage").value;
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/broadcast`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title, message, target_role: "ALL" })
+                });
+                const data = await res.json();
+                alert(`📢 Broadcast sent successfully to all active users!`);
+            } catch (err) {
+                console.error("Broadcast error:", err);
+            }
+        }
+
+        function switchAdminTab(tabKey) {
+            const tabs = ["users", "bookings", "payouts", "settings"];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tabBtn-${t}`);
+                const pane = document.getElementById(`tabContent-${t}`);
+                if (btn && pane) {
+                    if (t === tabKey.toLowerCase()) {
+                        btn.classList.add("active");
+                        pane.style.display = "block";
+                    } else {
+                        btn.classList.remove("active");
+                        pane.style.display = "none";
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "in.gaticonnect.app",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:01:F8:85:D5:42:9D:C7:6C:6E:9B:45:98:C3:A2:3D:19:D4:57:38:DE:3C:99:99:A2:8B:11:58:3D:36"
+      ]
+    }
+  }
+]

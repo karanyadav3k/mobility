@@ -1,0 +1,21 @@
+{
+  "name": "GatiConnect - Capacity & Mobility Network",
+  "short_name": "GatiConnect",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "description": "Hyperlocal Colony-to-Colony & Intercity Capacity Marketplace with Escrow & Bargaining",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=192",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=512",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

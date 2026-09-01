@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: gaticonnect_backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://gaticonnect_user:securepassword123@db:5432/gaticonnect_db
+      - ENVIRONMENT=production
+      - PORT=8080
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    container_name: gaticonnect_postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=gaticonnect_user
+      - POSTGRES_PASSWORD=securepassword123
+      - POSTGRES_DB=gaticonnect_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

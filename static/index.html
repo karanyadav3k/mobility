@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GatiConnect - Smart Capacity & Mobility Network</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GatiConnect">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=192">
+
+    <!-- Leaflet.js Interactive Mapping CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Razorpay Checkout SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- QR Code Generator & HTML5 Camera Scanner SDKs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- TOP HEADER -->
+    <header class="app-header">
+        <div class="container header-content">
+            <div class="brand" onclick="navigateBackToHub()" style="cursor:pointer;">
+                <div class="brand-icon"><i class="fa-solid fa-route"></i></div>
+                <div>
+                    <h1 class="brand-name">GatiConnect</h1>
+                    <p class="brand-tagline" id="txtBrandTagline">Smart Mobility & Capacity Network</p>
+                </div>
+            </div>
+
+            <!-- Active User, Wallet, Language & Profile Settings -->
+            <div class="user-profile-widget">
+                
+                <!-- 🇮🇳 1-TAP LANGUAGE TOGGLE SWITCHER -->
+                <button id="langToggleBtn" class="btn-lang-toggle" onclick="toggleAppLanguage()" title="Change Language / भाषा बदलें">
+                    <span id="langDisplayBadge">🇮🇳 हिंदी</span>
+                </button>
+
+                <!-- 💡 HOW IT WORKS GUIDE BUTTON -->
+                <button class="btn-icon-header" onclick="openHowItWorksModal()" title="How It Works / ऐप कैसे काम करती है?">
+                    <i class="fa-regular fa-circle-question" style="color:#2563eb;"></i>
+                </button>
+
+                <!-- DRIVER DUTY ON/OFF TOGGLE -->
+                <button id="dutyToggleBtn" class="btn-duty-toggle duty-on" onclick="handleToggleDuty()" style="display:none;" title="Duty Switch: Click to change availability">
+                    <span class="duty-dot"></span> <span id="dutyToggleText">Duty ON</span>
+                </button>
+
+                <!-- DIGITAL ESCROW WALLET WIDGET -->
+                <div class="wallet-badge" onclick="handleWalletClick()" title="View transactions, top-up or withdraw">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>₹<strong id="activeUserWallet">0.00</strong></span>
+                    <button class="btn-wallet-add">+</button>
+                </div>
+
+                <!-- LOGGED IN USER PILL & PROFILE DRAWER BUTTON -->
+                <div id="loggedInUserBox" style="display:none; align-items:center; gap:0.45rem;">
+                    <div class="user-pill-btn" onclick="openUserProfileHub()" title="Open User Profile & Settings (मेरी प्रोफ़ाइल)">
+                        <div class="user-avatar-mini" id="headerAvatar">U</div>
+                        <div class="user-name-mini" id="headerUserName">User</div>
+                        <div class="trust-badge-mini" id="headerTrustBadge">70/100</div>
+                    </div>
+                </div>
+
+                <!-- GUEST MODE PROFILE BUTTON & LOGIN -->
+                <div id="guestLoginBox" style="display:flex; align-items:center; gap:0.4rem;">
+                    <button class="btn-icon-header" onclick="handleProfileNavClick()" title="User Profile & Account (प्रोफ़ाइल)">
+                        <i class="fa-regular fa-circle-user" style="color:#2563eb; font-size:1.15rem;"></i>
+                    </button>
+                    <button class="btn-login-prominent" onclick="openAuthModal()">
+                        <i class="fa-solid fa-mobile-screen-button"></i> <span id="txtLoginBtn">लॉगिन / साइन-अप</span>
+                    </button>
+                </div>
+
+                <!-- NOTIFICATION BELL -->
+                <button class="btn-icon-header" onclick="requestPushPermission()" title="Enable Real-Time Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                </button>
+                
+                <button class="btn-create-offering desktop-only" onclick="handlePostTripClick()">
+                    <i class="fa-solid fa-plus-circle"></i> <span id="txtPostBtnHeader">+ पोस्ट करें (Post)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container main-content">
+
+        <!-- ==========================================
+             VIEW 1: CLEAN 4-TILE GATEWAY HOME SCREEN
+             ========================================== -->
+        <section id="homeHubView" class="view-screen active">
+            
+            <!-- 📲 1-CLICK PWA APP INSTALL BANNER -->
+            <div id="pwaInstallBanner" class="pwa-install-card">
+                <div class="pwa-icon-box"><i class="fa-solid fa-mobile-screen"></i></div>
+                <div class="pwa-text-box">
+                    <strong id="txtPwaTitle">📲 GatiConnect ऐप फोन में इंस्टॉल करें</strong>
+                    <p id="txtPwaDesc">बिना प्ले स्टोर के 1-क्लिक में होम स्क्रीन पर जोड़ें और तेज़ी से चलाएं!</p>
+                </div>
+                <button class="btn-pwa-install" onclick="installPWA()">
+                    <i class="fa-solid fa-download"></i> <span id="txtPwaBtn">Install App</span>
+                </button>
+            </div>
+
+            <!-- HERO GREETING -->
+            <div class="hub-hero">
+                <h2>👋 <span id="txtHeroGreeting">नमस्ते</span> <span id="heroGreetName">यात्री</span>! <span id="txtHeroSub">आज आपको क्या सेवा चाहिए?</span></h2>
+                <p id="txtHeroDesc">सीधे अपनी ज़रूरत चुनें — आधार सत्यापित, लाइव GPS ट्रैकिंग और 100% एस्क्रो सुरक्षा!</p>
+            </div>
+
+            <!-- 🔥 TRENDING POPULAR ROUTE CHIPS (LIVE PRICES) -->
+            <div class="trending-routes-section">
+                <div class="trending-label"><i class="fa-solid fa-fire" style="color:#ea580c;"></i> <span id="txtTrendingLabel">सबसे लोकप्रिय रूट्स (Trending):</span></div>
+                <div class="trending-chips-wrap">
+                    <div class="trend-chip" onclick="quickSelectRoute('RIDE_SHARE', 'Kolar Road', 'MP Nagar')">
+                        <span class="trend-name">🛵 Kolar ➔ MP Nagar</span>
+                        <span class="trend-price">₹35</span>
+                    </div>
+                    <div class="trend-chip" onclick="quickSelectRoute('PARCEL', 'Kolar Road', 'MP Nagar')">
+                        <span class="trend-name">📦 Parcel (Urgent)</span>
+                        <span class="trend-price">₹40</span>
+                    </div>
+                    <div class="trend-chip" onclick="quickSelectRoute('DRIVER_MATCH', 'Bhopal', 'Indore')">
+                        <span class="trend-name">👨✈️ Bhopal ➔ Indore Driver</span>
+                        <span class="trend-price">₹550</span>
+                    </div>
+                    <div class="trend-chip" onclick="quickSelectRoute('CARGO', 'Govindpura', 'Bairagarh')">
+                        <span class="trend-name">🚚 छोटा हाथी टेम्पो</span>
+                        <span class="trend-price">₹350</span>
+                    </div>
+                </div>
+            </div>
+
+            
+            <!-- SMART POPULAR ROUTE QUICK CHIPS -->
+            <div class="hub-quick-chips-wrap">
+                <span style="font-size:0.75rem; font-weight:700; color:#64748b; white-space:nowrap;"><i class="fa-solid fa-bolt" style="color:#eab308;"></i> Quick:</span>
+                <span class="hub-route-chip active" onclick="navigateToCategory('RIDE_SHARE')"><i class="fa-solid fa-car"></i> Carpool / Rides</span>
+                <span class="hub-route-chip" onclick="navigateToCategory('DRIVER_MATCH')"><i class="fa-solid fa-id-card"></i> Driver Match</span>
+                <span class="hub-route-chip" onclick="quickFilterHubRoute('Bhopal', 'Indore')"><i class="fa-solid fa-road"></i> Bhopal ➔ Indore (NH-46)</span>
+                <span class="hub-route-chip" onclick="quickFilterHubRoute('Kolar Road', 'MP Nagar')"><i class="fa-solid fa-location-dot"></i> Kolar ➔ MP Nagar</span>
+                <span class="hub-route-chip" onclick="navigateToCategory('PARCEL')"><i class="fa-solid fa-box"></i> P2P Parcel ₹30-₹40</span>
+                <span class="hub-route-chip chip-cargo" onclick="navigateToCategory('CARGO')"><i class="fa-solid fa-truck"></i> Loading Trucks 50% Off</span>
+            </div>
+
+            <!-- 4 BIG VISUAL TILES (2x2 Grid) -->
+            <div class="hub-tiles-grid">
+                
+                <!-- 1. RIDE SHARE TILE -->
+                <div class="hub-card tile-rideshare" onclick="navigateToCategory('RIDE_SHARE')">
+                    <div class="tile-icon-wrap">
+                        <i class="fa-solid fa-car-side"></i>
+                    </div>
+                    <div class="tile-content">
+                        <h3 id="txtTileRideshareTitle">🚗 Ride Share</h3>
+                        <p class="tile-hindi" id="txtTileRideshareSub">सफ़र व सीट शेयरिंग</p>
+                        <p class="tile-desc" id="txtTileRideshareDesc">कार या बाइक में सीट पाएं या खाली सीट शेयर कर पेट्रोल का खर्च बांटें।</p>
+                        <div class="tile-footer">
+                            <span class="tile-badge"><i class="fa-solid fa-circle-check"></i> <span id="count-RIDE_SHARE">1</span> <span id="txtAvailableBadge">उपलब्ध</span></span>
+                            <span class="tile-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. DRIVER MATCH TILE -->
+                <div class="hub-card tile-driver" onclick="navigateToCategory('DRIVER_MATCH')">
+                    <div class="tile-icon-wrap">
+                        <i class="fa-solid fa-id-card"></i>
+                    </div>
+                    <div class="tile-content">
+                        <h3 id="txtTileDriverTitle">👨✈️ Driver Match</h3>
+                        <p class="tile-hindi" id="txtTileDriverSub">वेरीफाइड ड्राइवर कनेक्ट</p>
+                        <p class="tile-desc" id="txtTileDriverDesc">अपनी कार के लिए ड्राइवर ढूंढें या ड्राइवर बनकर रास्ते में कमाएं।</p>
+                        <div class="tile-footer">
+                            <span class="tile-badge"><i class="fa-solid fa-shield-check"></i> <span id="count-DRIVER_MATCH">2</span> <span id="txtDriversBadge">ड्राइवर्स</span></span>
+                            <span class="tile-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. P2P PARCEL TILE -->
+                <div class="hub-card tile-parcel" onclick="navigateToCategory('PARCEL')">
+                    <div class="tile-icon-wrap">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <div class="tile-content">
+                        <h3 id="txtTileParcelTitle">📦 P2P Parcel</h3>
+                        <p class="tile-hindi" id="txtTileParcelSub">लोकल कॉलोनी व पार्सल</p>
+                        <p class="tile-desc" id="txtTileParcelDesc">कॉलोनी-टू-कॉलोनी टिफिन, दवाइयां व जरूरी सामान ₹30-₹40 में भेजें।</p>
+                        <div class="tile-footer">
+                            <span class="tile-badge"><i class="fa-solid fa-bolt"></i> <span id="count-PARCEL">1</span> <span id="txtParcelBadge">पार्सल</span></span>
+                            <span class="tile-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. CARGO LOGISTICS TILE -->
+                <div class="hub-card tile-cargo" onclick="navigateToCategory('CARGO')">
+                    <div class="tile-icon-wrap">
+                        <i class="fa-solid fa-truck-moving"></i>
+                    </div>
+                    <div class="tile-content">
+                        <h3 id="txtTileCargoTitle">🚚 Return Cargo</h3>
+                        <p class="tile-hindi" id="txtTileCargoSub">छोटा हाथी व खाली ट्रक</p>
+                        <p class="tile-desc" id="txtTileCargoDesc">दुकान/फैक्ट्री का माल भेजें या खाली लौट रहे ट्रक में 50% छूट पाएं।</p>
+                        <div class="tile-footer">
+                            <span class="tile-badge"><i class="fa-solid fa-percent"></i> <span id="count-CARGO">2</span> <span id="txtTripsBadge">लोडिंग ट्रिप्स</span></span>
+                            <span class="tile-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SMART CROSS-CATEGORY SYNERGIES BANNER -->
+            <div class="hub-synergy-banner" onclick="openSynergyModal()">
+                <div class="synergy-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <div class="synergy-text">
+                    <strong id="txtSynergyTitle">💡 Smart Route Synergies (आपसी तालमेल):</strong>
+                    <span id="hubSynergyText">कोलार ➔ एमपी नगर बाइक कम्यूटर के साथ पार्सल डिलीवरी मैच उपलब्ध है (+₹40 अतिरिक्त कमाई)!</span>
+                </div>
+                <button class="btn-synergy-view" id="txtSynergyBtn">View Synergy</button>
+            </div>
+
+            <!-- ACTIVE BOOKINGS & MY LISTINGS SUMMARY -->
+            <div class="hub-bottom-grid">
+                
+                <!-- ACTIVE BOOKINGS, LIVE GPS & ESCROW -->
+                <div class="hub-section-card">
+                    <div class="section-title-wrap">
+                        <h2><i class="fa-solid fa-shield-halved"></i> <span id="txtActiveBookingsTitle">Active Bookings & Live GPS Escrow</span></h2>
+                        <button class="btn-refresh" onclick="loadMyBookings()"><i class="fa-solid fa-rotate"></i></button>
+                    </div>
+                    <div class="bookings-list" id="hubBookingsList">
+                        <!-- Bookings -->
+                    </div>
+                </div>
+
+                <!-- MY POSTED LISTINGS -->
+                <div class="hub-section-card">
+                    <div class="section-title-wrap">
+                        <h2><i class="fa-solid fa-list-check"></i> <span id="txtMyListingsTitle">My Posted Listings & Needs</span></h2>
+                        <button class="btn-refresh" onclick="loadMyCreatedTrips()"><i class="fa-solid fa-rotate"></i></button>
+                    </div>
+                    <div id="hubMyCreatedContainer">
+                        <!-- My created listings -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- FOOTER WITH PRIVACY POLICY & ADMIN LINK -->
+            <footer style="margin-top:2.5rem; text-align:center; padding:1.5rem 0 1rem; border-top:1px solid #e2e8f0; font-size:0.75rem; color:#64748b;">
+                <p><strong>GatiConnect</strong> &copy; 2026 — Smart Capacity & Mobility Network</p>
+                <p style="margin-top:0.3rem;">
+                    <a href="/admin" target="_blank" style="color:#0f766e; text-decoration:none; font-weight:800; background:#f0fdfa; padding:0.2rem 0.5rem; border-radius:6px; border:1px solid #99f6e4;"><i class="fa-solid fa-shield-halved"></i> 👑 Admin Master Dashboard</a> &bull; 
+                    <a href="/privacy" style="color:#2563eb; text-decoration:none; font-weight:700;">🔒 Privacy Policy (गोपनीयता नीति)</a> &bull; 
+                    <a href="/api/health" target="_blank" style="color:#16a34a; text-decoration:none; font-weight:700;">🟢 Server Status</a>
+                </p>
+            </footer>
+
+        </section>
+
+        <!-- =======================================================
+             VIEW 2: DEDICATED CATEGORY SCREEN (WITH 2 INTENT DOORS)
+             ======================================================= -->
+        <section id="categoryDetailView" class="view-screen" style="display:none;">
+            
+            <!-- BACK BAR -->
+            <div class="category-header-bar">
+                <button class="btn-back-hub" onclick="navigateBackToHub()">
+                    <i class="fa-solid fa-arrow-left"></i> <span id="txtBackHome">Back to Home (मुख्य स्क्रीन)</span>
+                </button>
+                <div class="category-header-title">
+                    <h2 id="catViewTitle">📦 P2P Parcel</h2>
+                </div>
+                <button class="btn-create-offering" onclick="openPostModalForCurrentCategory()">
+                    <i class="fa-solid fa-plus-circle"></i> <span id="txtPostBtnCat">+ पोस्ट करें (Post)</span>
+                </button>
+            </div>
+
+            <!-- 🚪 2 INTENT DOORS -->
+            <div class="intent-doors-container" id="intentDoorsWrap">
+                <!-- Populated dynamically -->
+            </div>
+
+            <!-- CROSS-CATEGORY BONUS OPPORTUNITY BANNER -->
+            <div class="cross-opportunity-box" id="crossOpportunityBox" style="display:none;">
+                <div class="cross-opp-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                <div class="cross-opp-text" id="crossOpportunityText">
+                    <!-- Dynamic synergy message -->
+                </div>
+            </div>
+
+            <!-- SEARCH & SCOPE BAR WITH WORKING SWAP KEY, 🔍 SEARCH BUTTON & 🎙️ VOICE SEARCH -->
+            <div class="search-bar-wrap">
+                <div class="search-field">
+                    <i class="fa-solid fa-location-dot icon-from"></i>
+                    <input type="text" id="searchInputFrom" placeholder="From Colony / City (कहाँ से)" oninput="filterListings()" onkeypress="if(event.key === 'Enter') filterListings()">
+                    <button type="button" class="btn-gps-autodetect" onclick="detectGPSLocationForInput('searchInputFrom')" title="Auto-detect current GPS location">
+                        <i class="fa-solid fa-crosshairs"></i> GPS
+                    </button>
+                </div>
+
+                <!-- 🔄 WORKING LOCATION SWAP BUTTON (Bhopal <-> Indore) -->
+                <button type="button" id="btnSwapLocations" class="btn-swap-locations" onclick="swapSearchLocations()" title="Swap Locations / स्थान बदलें (Bhopal ⇄ Indore)">
+                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                </button>
+
+                <div class="search-field">
+                    <i class="fa-solid fa-location-crosshairs icon-to"></i>
+                    <input type="text" id="searchInputTo" placeholder="To Colony / City (कहाँ तक)" oninput="filterListings()" onkeypress="if(event.key === 'Enter') filterListings()">
+                    
+                    <!-- 🎙️ 1-TAP VOICE SEARCH MIC BUTTON -->
+                    <button type="button" id="btnVoiceSearch" class="btn-voice-mic" onclick="startVoiceSearch()" title="Speak Route / बोलकर खोजें">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+
+                <!-- 🔍 DEDICATED PROMINENT SEARCH ACTION BUTTON -->
+                <button type="button" class="btn-search-prominent" onclick="filterListings()" title="Search Available Rides & Loads">
+                    <i class="fa-solid fa-magnifying-glass"></i> <span id="txtSearchBtnLabel">खोजें (Search)</span>
+                </button>
+
+                <div class="quick-routes">
+                    <span class="quick-tag" onclick="setQuickRoute('Kolar Road', 'MP Nagar')">📍 Kolar ➔ MP Nagar</span>
+                    <span class="quick-tag" onclick="setQuickRoute('Govindpura', 'Bairagarh')">📍 Govindpura ➔ Bairagarh</span>
+                    <span class="quick-tag" onclick="setQuickRoute('Bhopal', 'Indore')">🌐 Bhopal ➔ Indore</span>
+                    <span class="quick-tag" onclick="clearRouteFilter()">Reset</span>
+                </div>
+            </div>
+
+            <!-- SEARCH RESULTS INDICATOR BADGE -->
+            <div id="searchResultsCount" class="search-results-indicator"></div>
+
+            <!-- DEDICATED CATEGORY FEED -->
+            <div class="listings-feed" id="categoryFeed">
+                <!-- Filtered Category Listings -->
+            </div>
+
+        </section>
+
+        <!-- =======================================================
+             VIEW 3: DEDICATED RESULTS PAGE (BEST MATCHES FOR YOU)
+             ======================================================= -->
+        <section id="tailoredMatchesView" class="view-screen" style="display:none;">
+            
+            <div class="category-header-bar">
+                <button class="btn-back-hub" onclick="navigateBackToHub()">
+                    <i class="fa-solid fa-arrow-left"></i> <span id="txtBackHomeTailored">Back to Home (मुख्य स्क्रीन)</span>
+                </button>
+                <div class="category-header-title">
+                    <h2 id="txtBestMatchesTitle">🎯 आपकी ज़रूरत के लिए सबसे बेहतरीन मैच (Best Matches)</h2>
+                </div>
+            </div>
+
+            <!-- SUMMARY OF USER'S POSTED NEED -->
+            <div class="tailored-need-hero" id="tailoredNeedHero">
+                <div class="need-hero-badge"><i class="fa-solid fa-bullseye"></i> आपकी पोस्ट की गई ज़रूरत:</div>
+                <div class="need-hero-route" id="tailoredHeroRoute">Kolar Road ➔ MP Nagar</div>
+                <div class="need-hero-details" id="tailoredHeroDetails">Category: Parcel | Base Price: ₹40.00</div>
+            </div>
+
+            <div class="tailored-intro-bar">
+                <p id="txtTailoredIntro">हमने आपकी रूट पर निम्नलिखित आधार सत्यापित लोगों/वाहनों को खोजा है जो आपकी ज़रूरत तुरंत पूरी कर सकते हैं:</p>
+            </div>
+
+            <!-- TAILORED MATCH CARDS FEED -->
+            <div class="listings-feed" id="tailoredMatchesFeed">
+                <!-- Direct Solutions rendered dynamically -->
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- MOBILE FLOATING ACTION BUTTON (FAB) -->
+    <button class="mobile-fab" onclick="handlePostTripClick()" title="Post Trip / Need">
+        <i class="fa-solid fa-plus"></i>
+        <span>Post</span>
+    </button>
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="mobile-bottom-nav">
+        <button class="bottom-nav-item active" onclick="navigateBackToHub()" id="mobTab-home">
+            <i class="fa-solid fa-house"></i>
+            <span id="txtMobHome">Home</span>
+        </button>
+        <button class="bottom-nav-item" onclick="navigateToCategory('RIDE_SHARE')" id="mobTab-rides">
+            <i class="fa-solid fa-car-side"></i>
+            <span id="txtMobRides">Rides</span>
+        </button>
+        <button class="bottom-nav-item mob-post-item" onclick="handlePostTripClick()">
+            <div class="mob-post-circle"><i class="fa-solid fa-plus"></i></div>
+            <span>Post</span>
+        </button>
+        <button class="bottom-nav-item" onclick="navigateToCategory('PARCEL')" id="mobTab-parcel">
+            <i class="fa-solid fa-box-open"></i>
+            <span id="txtMobParcel">Parcel</span>
+        </button>
+        <button class="bottom-nav-item" onclick="handleProfileNavClick()" id="mobTab-profile">
+            <i class="fa-solid fa-user-gear"></i>
+            <span id="txtMobProfile">Profile</span>
+        </button>
+    </nav>
+
+    <!-- ===================================================================
+         MODAL: 👤 USER PROFILE, ACTIVITY HISTORY & SETTINGS HUB (COMPLETE)
+         =================================================================== -->
+    <div class="modal-overlay" id="userProfileHubModal">
+        <div class="modal-card profile-hub-card" style="max-width: 580px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-circle-user" style="color:var(--primary);"></i> <span id="txtProfileHubTitle">मेरी प्रोफ़ाइल व खाता (My Profile & Account)</span></h3>
+                <button class="btn-close" onclick="closeUserProfileHub()">&times;</button>
+            </div>
+
+            <!-- USER HERO BANNER -->
+            <div class="profile-hero-card">
+                <div class="profile-hero-top">
+                    <div class="profile-avatar-large" id="profileHubAvatar">U</div>
+                    <div class="profile-hero-meta">
+                        <h3 id="profileHubFullName">User Name</h3>
+                        <div class="profile-hero-phone" id="profileHubPhone">+91 98XXXXXXXX</div>
+                        <div class="profile-badges-row">
+                            <span class="trust-level-badge" id="profileHubTrustBadge">💎 Diamond Verified (95/100)</span>
+                            <span id="profileHubAadhaarPill"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TRUST PROGRESS BAR -->
+                <div style="margin-top:0.75rem;">
+                    <div class="trust-progress-bar">
+                        <div class="trust-progress-fill" id="profileHubTrustProgressFill" style="width: 95%;"></div>
+                    </div>
+                </div>
+
+                <!-- QUICK STATS BAR -->
+                <div class="profile-stats-grid">
+                    <div class="profile-stat-box" onclick="switchProfileTab('HISTORY_WALLET')">
+                        <span class="pstat-val">₹<strong id="profileHubWalletVal">0.00</strong></span>
+                        <span class="pstat-lbl"><i class="fa-solid fa-wallet"></i> वॉलेट बैलेंस</span>
+                    </div>
+                    <div class="profile-stat-box" onclick="switchProfileTab('HISTORY_TRIPS')">
+                        <span class="pstat-val"><strong id="profileHubTripsCount">0</strong></span>
+                        <span class="pstat-lbl"><i class="fa-solid fa-route"></i> कुल यात्राएं / ऑर्डर्स</span>
+                    </div>
+                    <div class="profile-stat-box" onclick="switchProfileTab('HISTORY_POSTS')">
+                        <span class="pstat-val"><strong id="profileHubPostsCount">0</strong></span>
+                        <span class="pstat-lbl"><i class="fa-solid fa-bullseye"></i> मेरी पोस्ट्स</span>
+                    </div>
+                </div>
+
+                <!-- DRIVER PERFORMANCE & EARNINGS WIDGET (DYNAMIC) -->
+                <div id="driverPerformanceSection" class="driver-performance-card" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:700; font-size:0.85rem; color:#f8fafc;"><i class="fa-solid fa-chart-line" style="color:#38bdf8;"></i> Driver Performance & Earnings</span>
+                        <button type="button" class="btn-payout-trigger" onclick="openPayoutModal()" style="font-size:0.7rem; padding:0.25rem 0.55rem; background:#16a34a; color:white; border:none; border-radius:6px; font-weight:700; cursor:pointer;"><i class="fa-solid fa-money-bill-transfer"></i> Withdraw</button>
+                    </div>
+                    <div class="driver-performance-grid">
+                        <div class="driver-stat-pill">
+                            <div class="driver-stat-num">₹<span id="driverEarningsToday">0.00</span></div>
+                            <div class="driver-stat-label">Total Earnings</div>
+                        </div>
+                        <div class="driver-stat-pill">
+                            <div class="driver-stat-num" id="driverCompletedTripsCount">0</div>
+                            <div class="driver-stat-label">Trips Done</div>
+                        </div>
+                        <div class="driver-stat-pill">
+                            <div class="driver-stat-num" style="color:#facc15;"><i class="fa-solid fa-star" style="font-size:0.8rem;"></i> 4.9</div>
+                            <div class="driver-stat-label">Rating</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PROFILE TAB NAVIGATION -->
+            <div class="profile-nav-tabs">
+                <button class="p-nav-btn active" id="pTabBtn-history" onclick="switchProfileTab('HISTORY')">
+                    <i class="fa-solid fa-clock-rotate-left"></i> हिस्ट्री (History)
+                </button>
+                <button class="p-nav-btn" id="pTabBtn-edit" onclick="switchProfileTab('EDIT')">
+                    <i class="fa-solid fa-user-pen"></i> प्रोफ़ाइल एडिट (Details)
+                </button>
+                <button class="p-nav-btn" id="pTabBtn-settings" onclick="switchProfileTab('SETTINGS')">
+                    <i class="fa-solid fa-gear"></i> सेटिंग्स व मदद (Settings)
+                </button>
+            </div>
+
+            <!-- ================= TAB 1: ACTIVITY & APP HISTORY ================= -->
+            <div id="pTabContent-history" class="ptab-content-pane">
+                
+                <div class="history-sub-tabs">
+                    <button class="h-sub-btn active" id="hSubBtn-trips" onclick="switchHistorySubTab('TRIPS')">
+                        <i class="fa-solid fa-car-side"></i> यात्राएं व ऑर्डर्स (Trips)
+                    </button>
+                    <button class="h-sub-btn" id="hSubBtn-posts" onclick="switchHistorySubTab('POSTS')">
+                        <i class="fa-solid fa-list-check"></i> मेरी पोस्ट्स (Posts)
+                    </button>
+                    <button class="h-sub-btn" id="hSubBtn-wallet" onclick="switchHistorySubTab('WALLET')">
+                        <i class="fa-solid fa-receipt"></i> पासबुक (Ledger)
+                    </button>
+                </div>
+
+                <!-- 1A. TRIP HISTORY -->
+                <div id="hSubPane-trips" class="history-sub-pane">
+                    <div class="bookings-list" id="profileTripsHistoryList">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- 1B. MY CREATED LISTINGS -->
+                <div id="hSubPane-posts" class="history-sub-pane" style="display:none;">
+                    <div id="profileMyPostsList">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- 1C. WALLET PASSBOOK -->
+                <div id="hSubPane-wallet" class="history-sub-pane" style="display:none;">
+                    <div class="wallet-balance-box" style="margin-bottom:0.75rem; padding:0.85rem;">
+                        <div style="font-size:0.75rem; color:#94a3b8;">Available Escrow Balance:</div>
+                        <div class="wallet-big-amount" style="font-size:1.5rem;">₹<span id="profilePassbookBalance">0.00</span></div>
+                        <div style="display:flex; justify-content:center; gap:0.5rem; margin-top:0.45rem;">
+                            <button class="btn-wallet-add-action" onclick="closeUserProfileHub(); openWalletModal();">
+                                <i class="fa-solid fa-plus"></i> Add Money
+                            </button>
+                            <button class="btn-withdraw-trigger" onclick="closeUserProfileHub(); openPayoutModal();">
+                                <i class="fa-solid fa-money-bill-transfer"></i> Withdraw
+                            </button>
+                        </div>
+                    </div>
+                    <div id="profilePassbookTxnList" class="wallet-txn-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ================= TAB 2: EDIT PROFILE & VEHICLES ================= -->
+            <div id="pTabContent-edit" class="ptab-content-pane" style="display:none;">
+                <form id="profileHubEditForm" onsubmit="handleUpdateProfileSubmit(event)">
+                    <div class="form-group">
+                        <label>पूरा नाम (Full Name):</label>
+                        <input type="text" id="editFullName" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>मोबाइल नंबर (सत्यापित):</label>
+                            <input type="text" id="editPhoneNumber" disabled style="background:#f1f5f9; color:#64748b;">
+                        </div>
+                        <div class="form-group">
+                            <label>ईमेल आईडी (Email):</label>
+                            <input type="email" id="editEmail" placeholder="name@gmail.com">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>💸 UPI ID (कमाई निकासी हेतु):</label>
+                        <input type="text" id="editUpiId" placeholder="e.g. yourname@okaxis / 98260XXXXX@paytm">
+                    </div>
+
+                    <div class="form-group">
+                        <label>🆘 आपातकालीन संपर्क (Emergency Contact):</label>
+                        <input type="tel" id="editEmergencyContact" placeholder="98XXXXXXXX">
+                    </div>
+
+                    <div class="form-group">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label>🪪 ड्राइविंग लाइसेंस (DL Number):</label>
+                            <button type="button" class="btn-kyc-trigger" onclick="openKycModal()">
+                                <i class="fa-solid fa-shield-halved"></i> आधार / DL KYC
+                            </button>
+                        </div>
+                        <input type="text" id="editDlNumber" placeholder="MP04-2020-XXXXXXX">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🚗 वाहन नाम व मॉडल:</label>
+                            <input type="text" id="editVehicleName" placeholder="e.g. Honda City / Bike">
+                        </div>
+                        <div class="form-group">
+                            <label>वाहन नंबर:</label>
+                            <input type="text" id="editVehicleNumber" placeholder="MP-04-XX-1234">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer" style="justify-content: flex-end; padding-top:0.6rem;">
+                        <button type="submit" class="btn-submit"><i class="fa-solid fa-floppy-disk"></i> अपडेट करें (Update)</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ================= TAB 3: APP SETTINGS & HELPDESK ================= -->
+            <div id="pTabContent-settings" class="ptab-content-pane" style="display:none;">
+                <div class="settings-list-wrap">
+                    
+                    <div class="settings-item-row" onclick="toggleAppLanguage()">
+                        <div class="settings-item-icon" style="background:#eff6ff; color:#2563eb;">
+                            <i class="fa-solid fa-language"></i>
+                        </div>
+                        <div class="settings-item-text">
+                            <strong>भाषा बदलें (Language)</strong>
+                            <p>वर्तमान भाषा: <span id="settingsLangBadge" style="font-weight:700; color:#2563eb;">🇮🇳 हिंदी</span></p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:#94a3b8; font-size:0.8rem;"></i>
+                    </div>
+
+                    <div class="settings-item-row" onclick="requestPushPermission()">
+                        <div class="settings-item-icon" style="background:#f0fdf4; color:#16a34a;">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+                        <div class="settings-item-text">
+                            <strong>पुश नोटिफ़िकेशन (Push Alerts)</strong>
+                            <p>राइड अपडेट्स, चैट और पेमेंट अलर्ट्स सक्षम करें</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:#94a3b8; font-size:0.8rem;"></i>
+                    </div>
+
+                    <div class="settings-item-row" onclick="closeUserProfileHub(); openHowItWorksModal();">
+                        <div class="settings-item-icon" style="background:#fef3c7; color:#b45309;">
+                            <i class="fa-regular fa-circle-question"></i>
+                        </div>
+                        <div class="settings-item-text">
+                            <strong>ऐप कैसे काम करती है? (How It Works)</strong>
+                            <p>एस्क्रो सुरक्षा, OTP और बुकिंग प्रक्रिया सीखें</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:#94a3b8; font-size:0.8rem;"></i>
+                    </div>
+
+                    <div class="settings-item-row" onclick="installPWA()">
+                        <div class="settings-item-icon" style="background:#e0f2fe; color:#0369a1;">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                        </div>
+                        <div class="settings-item-text">
+                            <strong>📲 फोन में ऐप इंस्टॉल करें (Install PWA)</strong>
+                            <p>1-क्लिक में होम स्क्रीन पर जोड़ें</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:#94a3b8; font-size:0.8rem;"></i>
+                    </div>
+
+                    <a href="https://wa.me/919826000000?text=Hello%20GatiConnect%20Support" target="_blank" class="settings-item-row" style="text-decoration:none;">
+                        <div class="settings-item-icon" style="background:#f0fdf4; color:#16a34a;">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </div>
+                        <div class="settings-item-text">
+                            <strong>24x7 WhatsApp हेल्पडेस्क व सपोर्ट</strong>
+                            <p>कस्टमर केयर से तुरंत संपर्क करें</p>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="color:#94a3b8; font-size:0.8rem;"></i>
+                    </a>
+
+                    <div class="settings-item-row" onclick="window.open('/privacy', '_blank')">
+                        <div class="settings-item-icon" style="background:#f8fafc; color:#475569;">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="settings-item-text">
+                            <strong>गोपनीयता नीति व नियम (Privacy & Terms)</strong>
+                            <p>डेटा सुरक्षा, रिफंड पॉलिसी व शर्तें</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:#94a3b8; font-size:0.8rem;"></i>
+                    </div>
+
+                    <div class="settings-signout-wrap" style="margin-top:1.2rem; padding-top:0.85rem; border-top:1px solid #e2e8f0;">
+                        <button type="button" class="btn-danger-outline" style="width:100%; padding:0.65rem; display:flex; align-items:center; justify-content:center; gap:0.45rem;" onclick="handleSignOut()">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out (खाते से लॉग आउट करें)
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL: 💡 "HOW IT WORKS" 30-SECOND VISUAL GUIDE
+         ==================================================== -->
+    <div class="modal-overlay" id="howItWorksModal">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-lightbulb" style="color:#eab308;"></i> <span id="txtGuideModalTitle">GatiConnect कैसे काम करता है?</span></h3>
+                <button class="btn-close" onclick="closeHowItWorksModal()">&times;</button>
+            </div>
+
+            <div class="guide-steps-wrap">
+                
+                <div class="guide-step-card">
+                    <div class="guide-num">1</div>
+                    <div class="guide-content">
+                        <strong>📍 1. अपनी ज़रूरत चुनें या पोस्ट करें</strong>
+                        <p>सवारी चाहिए, सामान भेजना है या गाड़ी के लिए ड्राइवर — 1-टैप में अपनी रूट चुनें या पोस्ट करें।</p>
+                    </div>
+                </div>
+
+                <div class="guide-step-card">
+                    <div class="guide-num">2</div>
+                    <div class="guide-content">
+                        <strong>🔒 2. 100% सुरक्षित एस्क्रो भुगतान (Zero Fraud)</strong>
+                        <p>बुकिंग के समय पैसे सीधे ड्राइवर को नहीं जाते, बल्कि प्लेटफ़ॉर्म एस्क्रो में सुरक्षित लॉक रहते हैं।</p>
+                    </div>
+                </div>
+
+                <div class="guide-step-card">
+                    <div class="guide-num">3</div>
+                    <div class="guide-content">
+                        <strong>🔑 3. हैंडओवर व डिलीवरी OTP से पूरा करें</strong>
+                        <p>यात्रा शुरू करते समय हैंडओवर OTP दें। मंज़िल पर पहुंचने पर डिलीवरी OTP डालते ही ड्राइवर को पेआउट मिलता है।</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer" style="justify-content: center;">
+                <button class="btn-submit" style="width:100%; padding:0.65rem;" onclick="closeHowItWorksModal()">
+                    <i class="fa-solid fa-thumbs-up"></i> समझ गया, शुरू करें! (Got It)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL: 🧾 DIGITAL TRIP INVOICE / OFFICIAL RECEIPT
+         ==================================================== -->
+    <div class="modal-overlay" id="receiptModal">
+        <div class="modal-card receipt-modal-card" style="max-width: 480px;">
+            <div class="modal-header" style="border-bottom:none; margin-bottom:0;">
+                <div>
+                    <h3 style="color:#0f172a; font-size:1.1rem;"><i class="fa-solid fa-file-invoice"></i> यात्रा रसीद (Trip Invoice)</h3>
+                    <div style="font-size:0.72rem; color:#64748b;" id="receiptIdText">Invoice #GATI-123456</div>
+                </div>
+                <button class="btn-close" onclick="closeReceiptModal()">&times;</button>
+            </div>
+
+            <div class="receipt-body" id="receiptPrintableArea">
+                <div class="receipt-brand-header">
+                    <div class="brand-name" style="font-size:1.1rem; color:#2563eb;">GatiConnect Mobility</div>
+                    <div class="badge-govt-verified" style="font-size:0.68rem;"><i class="fa-solid fa-shield-check"></i> 100% Escrow Verified</div>
+                </div>
+
+                <div class="receipt-route-box">
+                    <div style="font-size:0.72rem; color:#64748b;">Route & Journey:</div>
+                    <div class="receipt-route-text" id="rcptRoute">Kolar Road ➔ MP Nagar</div>
+                    <div class="receipt-meta-row">
+                        <span id="rcptDate">31 Aug 2026</span> &bull; <span id="rcptCategory">Parcel Delivery</span>
+                    </div>
+                </div>
+
+                <table class="receipt-table">
+                    <tr>
+                        <td>सवारी / ड्राइवर (Partner):</td>
+                        <td style="text-align:right; font-weight:700;" id="rcptDriverName">Rahul Gupta</td>
+                    </tr>
+                    <tr>
+                        <td>वाहन विवरण (Vehicle):</td>
+                        <td style="text-align:right;" id="rcptVehicle">Hero Splendor [MP-04-XY-9012]</td>
+                    </tr>
+                    <tr>
+                        <td>भुगतान माध्यम (Payment Mode):</td>
+                        <td style="text-align:right;" id="rcptPaymentMode">Razorpay UPI</td>
+                    </tr>
+                    <tr style="border-top: 1.5px solid #cbd5e1; font-weight:800; font-size:0.95rem;">
+                        <td>कुल किराया (Total Fare):</td>
+                        <td style="text-align:right; color:#16a34a;" id="rcptTotalFare">₹35.00</td>
+                    </tr>
+                </table>
+
+                <div class="receipt-footer-stamp">
+                    <i class="fa-solid fa-circle-check" style="color:#16a34a;"></i> <strong>भुगतान सफल व सत्यापित</strong> (Delivery OTP Verified)
+                </div>
+            </div>
+
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn-cancel" onclick="closeReceiptModal()">बंद करें</button>
+                <button class="btn-submit" onclick="window.print()" style="background:#2563eb;">
+                    <i class="fa-solid fa-print"></i> रसीद प्रिंट / डाउनलोड करें
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL: LIVE GPS ROUTE TRACKING & INTERACTIVE MAP
+         ==================================================== -->
+    <div class="modal-overlay" id="trackingMapModal">
+        <div class="modal-card map-modal-card">
+            <div class="modal-header" style="background:#0f172a; color:white; margin-bottom:0; border-radius:14px 14px 0 0;">
+                <div>
+                    <h3 style="color:white; font-size:0.95rem;">
+                        <i class="fa-solid fa-satellite-dish" style="color:#38bdf8; animation: pulse 1.5s infinite;"></i> 
+                        Live GPS Tracking & Route
+                    </h3>
+                    <div style="font-size:0.72rem; color:#94a3b8;" id="trackTripRouteTitle">
+                        Bhopal ➔ Indore (NH-46 Highway)
+                    </div>
+                </div>
+                <button class="btn-close" onclick="closeTrackingModal()" style="color:white;">&times;</button>
+            </div>
+
+            <!-- LIVE STATUS STATS BAR -->
+            <div class="tracking-stats-bar">
+                <div class="track-stat-item">
+                    <span class="track-stat-label">Driver:</span>
+                    <span class="track-stat-val" id="trackDriverName">Amit Sharma</span>
+                </div>
+                <div class="track-stat-item">
+                    <span class="track-stat-label">Speed:</span>
+                    <span class="track-stat-val" id="trackSpeedVal">48 km/h</span>
+                </div>
+                <div class="track-stat-item">
+                    <span class="track-stat-label">ETA:</span>
+                    <span class="track-stat-val" style="color:#16a34a;" id="trackEtaVal">~22 Mins</span>
+                </div>
+                <div class="track-stat-item">
+                    <span class="track-stat-label">Status:</span>
+                    <span class="badge-on-road">🟢 On Road</span>
+                </div>
+            </div>
+
+            <!-- LEAFLET INTERACTIVE MAP CANVAS -->
+            <div id="liveMapCanvas" class="live-map-canvas"></div>
+
+            <!-- TRACKING ACTION FOOTER -->
+            <div class="tracking-footer">
+                <div style="font-size:0.72rem; color:#475569;">
+                    <i class="fa-solid fa-lock" style="color:#2563eb;"></i> <strong>Escrow Protected:</strong> Payment will be released after Delivery OTP.
+                </div>
+                <div style="display:flex; gap:0.4rem;">
+                    <button type="button" class="btn-share-trip-direct" onclick="shareLiveTripFromModal()" style="padding:0.35rem 0.65rem;">
+                        <i class="fa-brands fa-whatsapp" style="color:#16a34a;"></i> WhatsApp Share
+                    </button>
+                    <button class="btn-sos-trigger" onclick="openSosModal(null)" style="padding:0.35rem 0.65rem;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> 🚨 SOS Alert
+                    </button>
+                    <button class="btn-cancel" onclick="closeTrackingModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL: GOVERNMENT KYC VERIFICATION (AADHAAR & DL)
+         ==================================================== -->
+    <div class="modal-overlay" id="kycModal">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-shield-halved" style="color:#15803d;"></i> सरकारी पहचान सत्यापन (Government KYC)</h3>
+                <button class="btn-close" onclick="closeKycModal()">&times;</button>
+            </div>
+
+            <div class="kyc-tabs">
+                <button class="kyc-tab-btn active" id="tabAadhaarBtn" onclick="switchKycTab('AADHAAR')">
+                    <i class="fa-solid fa-fingerprint"></i> आधार कार्ड (Aadhaar OTP)
+                </button>
+                <button class="kyc-tab-btn" id="tabDlBtn" onclick="switchKycTab('DL')">
+                    <i class="fa-solid fa-id-card"></i> ड्राइविंग लाइसेंस (Sarathi DL)
+                </button>
+            </div>
+
+            <!-- AADHAAR SECTION -->
+            <div id="kycAadhaarSection">
+                <div id="aadhaarStepInput">
+                    <div style="font-size:0.8rem; color:#475569; margin: 0.8rem 0;">
+                        UIDAI द्वारा सुरक्षित OTP सत्यापन के लिए अपना 12-अंकों का आधार नंबर दर्ज करें:
+                    </div>
+                    <form onsubmit="handleSendAadhaarOtp(event)">
+                        <div class="form-group">
+                            <label>आधार नंबर (12-Digit Aadhaar):</label>
+                            <input type="text" id="aadhaarNumberInput" placeholder="XXXX XXXX 1234" maxlength="12" pattern="\d{12}" required>
+                        </div>
+                        <button type="submit" id="btnSendAadhaarOtp" class="btn-submit" style="width:100%; padding:0.65rem; background:#0f766e;">
+                            <i class="fa-solid fa-paper-plane"></i> आधार OTP प्राप्त करें
+                        </button>
+                    </form>
+                </div>
+
+                <div id="aadhaarStepOtp" style="display:none; margin-top:0.8rem;">
+                    <div class="sms-sent-banner" style="background:#f0fdf4; border-color:#86efac;">
+                        <i class="fa-solid fa-shield-check" style="color:#16a34a; font-size:1.4rem;"></i>
+                        <div style="font-size:0.78rem;">
+                            आधार <strong id="maskedAadhaarDisplay">XXXX-XXXX-1234</strong> पर UIDAI OTP भेजा गया है।
+                        </div>
+                    </div>
+                    <form onsubmit="handleVerifyAadhaarOtp(event)">
+                        <div class="form-group">
+                            <label>4-अंकों का आधार OTP दर्ज करें:</label>
+                            <input type="text" id="aadhaarOtpInput" placeholder="• • • •" maxlength="4" style="font-size:1.4rem; letter-spacing:8px; text-align:center; font-weight:800;" required>
+                        </div>
+                        <button type="submit" class="btn-submit" style="width:100%; padding:0.65rem; background:#16a34a;">
+                            <i class="fa-solid fa-circle-check"></i> आधार सत्यापित करें (Get Verified Badge)
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- DL SECTION -->
+            <div id="kycDlSection" style="display:none; margin-top:0.8rem;">
+                <div style="font-size:0.8rem; color:#475569; margin-bottom:0.8rem;">
+                    ड्राइवर बैज प्राप्त करने के लिए अपना ड्राइविंग लाइसेंस (DL) नंबर दर्ज करें:
+                </div>
+                <form onsubmit="handleVerifyDl(event)">
+                    <div class="form-group">
+                        <label>ड्राइविंग लाइसेंस नंबर (DL Number):</label>
+                        <input type="text" id="dlKycInput" placeholder="e.g. MP04-2020-1234567" required>
+                    </div>
+                    <button type="submit" class="btn-submit" style="width:100%; padding:0.65rem; background:#2563eb;">
+                        <i class="fa-solid fa-id-badge"></i> Sarathi DL सत्यापित करें
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 1: REAL SMS OTP VERIFICATION
+         ========================================== -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-card" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-mobile-screen-button"></i> मोबाइल नंबर से लॉगिन / साइन-अप</h3>
+                <button class="btn-close" onclick="closeAuthModal()">&times;</button>
+            </div>
+
+            <!-- STEP 1: ENTER PHONE NUMBER -->
+            <div id="authStepPhone">
+                <p style="font-size:0.85rem; color:#64748b; margin-bottom:1rem;">
+                    सुरक्षित SMS OTP वेरिफिकेशन के लिए अपना 10-अंकों का मोबाइल नंबर दर्ज करें:
+                </p>
+                <form onsubmit="handleSendOtpSubmit(event)">
+                    <div class="form-group">
+                        <label>मोबाइल नंबर (Mobile Number):</label>
+                        <div class="phone-input-wrap">
+                            <span class="phone-prefix">+91</span>
+                            <input type="tel" id="authPhoneInput" placeholder="98XXXXXXXX" maxlength="10" pattern="[6-9][0-9]{9}" required>
+                        </div>
+                    </div>
+                    <button type="submit" id="btnSendOtp" class="btn-submit" style="width:100%; padding:0.75rem; font-size:0.95rem;">
+                        <i class="fa-solid fa-paper-plane"></i> OTP प्राप्त करें (Send OTP)
+                    </button>
+                </form>
+            </div>
+
+            <!-- STEP 2: ENTER SMS OTP -->
+            <div id="authStepOtp" style="display:none;">
+                <div class="sms-sent-banner">
+                    <i class="fa-solid fa-message-sms" style="font-size:1.4rem; color:#2563eb;"></i>
+                    <div>
+                        <div style="font-weight:700; font-size:0.85rem;">SMS भेजा गया!</div>
+                        <div style="font-size:0.75rem; color:#64748b;">
+                            हमने <strong id="authPhoneDisplay">+91 98XXXXXXXX</strong> पर 4-अंकों का OTP भेजा है।
+                        </div>
+                    </div>
+                </div>
+
+                <form onsubmit="handleVerifyOtpSubmit(event)">
+                    <div class="form-group">
+                        <label>4-अंकों का SMS OTP दर्ज करें:</label>
+                        <input type="text" id="authOtpInput" placeholder="• • • •" maxlength="4" style="font-size:1.5rem; letter-spacing:10px; text-align:center; font-weight:800;" required autocomplete="one-time-code">
+                    </div>
+                    <button type="submit" class="btn-submit" style="width:100%; padding:0.75rem; font-size:0.95rem; background:#16a34a;">
+                        <i class="fa-solid fa-circle-check"></i> OTP सत्यापित करें (Verify)
+                    </button>
+                    
+                    <div class="resend-otp-bar">
+                        <span id="otpCountdownText">⏱️ 30s में पुनः OTP मंगा सकते हैं</span>
+                        <button type="button" id="btnResendOtp" class="btn-resend" onclick="handleResendOtp()" style="display:none;">
+                            <i class="fa-solid fa-rotate-right"></i> पुनः OTP भेजें (Resend OTP)
+                        </button>
+                    </div>
+
+                    <div style="text-align:center; margin-top:0.6rem;">
+                        <button type="button" class="btn-link" onclick="backToPhoneStep()" style="font-size:0.78rem; color:#64748b; background:none; border:none; cursor:pointer;">
+                            ← दूसरा नंबर दर्ज करें
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL 2: FIRST-TIME PROFILE SETUP
+         ==================================================== -->
+    <div class="modal-overlay" id="profileSetupModal">
+        <div class="modal-card" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 style="color:#0f766e;"><i class="fa-solid fa-user-check"></i> 🎉 प्रोफ़ाइल विवरण (Profile Setup)</h3>
+            </div>
+            
+            <p style="font-size:0.82rem; color:#64748b; margin-bottom:1rem;">
+                मोबाइल नंबर सत्यापित हो गया है! अपना नाम भरें और यदि चाहें तो अतिरिक्त जानकारी भरकर अपना <strong>Trust Score</strong> बढ़ाएं:
+            </p>
+
+            <form id="profileSetupForm" onsubmit="handleCompleteProfileSubmit(event)">
+                <input type="hidden" id="setupPhoneHidden">
+
+                <div class="form-group">
+                    <label><strong>👤 आपका पूरा नाम (Full Name) *अनिवार्य:</strong></label>
+                    <input type="text" id="setupFullName" placeholder="e.g. राहुल शर्मा / प्रिया पटेल" required>
+                </div>
+
+                <div class="optional-card-section">
+                    <div class="optional-section-header">
+                        <span><i class="fa-solid fa-award"></i> <strong>ऐच्छिक विवरण (Optional Rewards):</strong></span>
+                        <span style="font-size:0.72rem; color:#0f766e; font-weight:700;">+Trust Score Points</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📧 ईमेल आईडी (Email ID) <span class="badge-trust-reward">+3 Score</span>:</label>
+                        <input type="email" id="setupEmail" placeholder="e.g. rahul@gmail.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>💸 UPI ID (ड्राइवर/कैरियर कमाई निकासी हेतु) <span class="badge-trust-reward">+5 Score</span>:</label>
+                        <input type="text" id="setupUpiId" placeholder="e.g. rahul@okaxis / 98260XXXXX@paytm">
+                    </div>
+
+                    <div class="form-group">
+                        <label>🆘 आपातकालीन संपर्क (Emergency Contact) <span class="badge-trust-reward">+2 Score</span>:</label>
+                        <input type="tel" id="setupEmergencyContact" placeholder="e.g. परिवार का नंबर 98XXXXXXXX">
+                    </div>
+
+                    <div class="form-group">
+                        <label>🪪 ड्राइविंग लाइसेंस नंबर (DL Number) <span class="badge-trust-reward">+10 Score (ड्राइवर बैज)</span>:</label>
+                        <input type="text" id="setupDlNumber" placeholder="e.g. MP04-2020-1234567">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🚗 वाहन नाम व मॉडल <span class="badge-trust-reward">+5 Score</span>:</label>
+                            <input type="text" id="setupVehicleName" placeholder="e.g. Hero Splendor / Swift">
+                        </div>
+                        <div class="form-group">
+                            <label>वाहन नंबर (Vehicle No):</label>
+                            <input type="text" id="setupVehicleNumber" placeholder="e.g. MP-04-AB-1234">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="justify-content: space-between; align-items:center;">
+                    <button type="button" class="btn-skip-setup" onclick="handleSkipProfileSetup()">
+                        ⏭️ बाद में भरें (Skip for Now)
+                    </button>
+                    <button type="submit" class="btn-submit" style="background:#16a34a;">
+                        <i class="fa-solid fa-check"></i> प्रोफ़ाइल सेव करें (Save)
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL 4: IN-RIDE SOS SAFETY & EMERGENCY ASSIST
+         ==================================================== -->
+    <div class="modal-overlay" id="sosModal">
+        <div class="modal-card" style="max-width: 440px; border-top: 4px solid #ef4444;">
+            <div class="modal-header">
+                <h3 style="color:#b91c1c;"><i class="fa-solid fa-triangle-exclamation"></i> 🚨 आपातकालीन सहायता (Emergency SOS)</h3>
+                <button class="btn-close" onclick="closeSosModal()">&times;</button>
+            </div>
+            
+            <div style="font-size:0.82rem; color:#475569; margin-bottom:1rem;">
+                यदि आप किसी आपात स्थिति में हैं, तो सीधे डायल करें या अपनी लाइव यात्रा का विवरण अपने परिवार को WhatsApp पर भेजें:
+            </div>
+
+            <div class="sos-actions-grid">
+                <a href="tel:112" class="sos-btn-call" style="background:#dc2626;">
+                    <i class="fa-solid fa-phone-volume"></i>
+                    <div>
+                        <div style="font-weight:800; font-size:1rem;">112 पर पुलिस कॉल करें</div>
+                        <div style="font-size:0.7rem; opacity:0.9;">National Emergency Helpline</div>
+                    </div>
+                </a>
+
+                <a href="tel:108" class="sos-btn-call" style="background:#ea580c;">
+                    <i class="fa-solid fa-truck-medical"></i>
+                    <div>
+                        <div style="font-weight:800; font-size:1rem;">108 एम्बुलेंस कॉल करें</div>
+                        <div style="font-size:0.7rem; opacity:0.9;">Emergency Medical Assist</div>
+                    </div>
+                </a>
+
+                <button type="button" class="sos-btn-call" style="background:#16a34a; border:none; cursor:pointer;" onclick="shareRideOnWhatsApp()">
+                    <i class="fa-brands fa-whatsapp" style="font-size:1.6rem;"></i>
+                    <div style="text-align:left;">
+                        <div style="font-weight:800; font-size:0.95rem;">WhatsApp पर लाइव GPS राइड शेयर करें</div>
+                        <div style="font-size:0.7rem; opacity:0.9;">गाड़ी नंबर, ड्राइवर का नाम व गूगल मैप्स लिंक</div>
+                    </div>
+                </button>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeSosModal()">बंद करें</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL 5: POST-TRIP 5-STAR RATING & REVIEWS
+         ==================================================== -->
+    <div class="modal-overlay" id="ratingModal">
+        <div class="modal-card" style="max-width: 440px; text-align:center;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-star" style="color:#eab308;"></i> यात्रा का अनुभव रेट करें</h3>
+                <button class="btn-close" onclick="closeRatingModal()">&times;</button>
+            </div>
+
+            <p style="font-size:0.85rem; color:#64748b; margin: 0.8rem 0;">
+                आपकी यात्रा पूरी हो गई है! कृपया अपना अनुभव साझा करें:
+            </p>
+
+            <form id="ratingForm" onsubmit="handleReviewSubmit(event)">
+                <input type="hidden" id="ratingBookingId">
+                
+                <div class="star-rating-wrap" id="starRatingWrap">
+                    <span class="star-btn active" data-value="1" onclick="setRatingValue(1)"><i class="fa-solid fa-star"></i></span>
+                    <span class="star-btn active" data-value="2" onclick="setRatingValue(2)"><i class="fa-solid fa-star"></i></span>
+                    <span class="star-btn active" data-value="3" onclick="setRatingValue(3)"><i class="fa-solid fa-star"></i></span>
+                    <span class="star-btn active" data-value="4" onclick="setRatingValue(4)"><i class="fa-solid fa-star"></i></span>
+                    <span class="star-btn active" data-value="5" onclick="setRatingValue(5)"><i class="fa-solid fa-star"></i></span>
+                </div>
+                <input type="hidden" id="ratingScoreInput" value="5">
+
+                <div class="form-group" style="text-align:left; margin-top:1rem;">
+                    <label>आपकी प्रतिक्रिया (Feedback / Comment):</label>
+                    <textarea id="ratingCommentInput" rows="2" placeholder="e.g. समय पर पहुंचे, सुरक्षित ड्राइविंग, बहुत विनम्र स्वभाव!"></textarea>
+                </div>
+
+                <div class="modal-footer" style="justify-content:center;">
+                    <button type="submit" class="btn-submit" style="background:#16a34a; width:100%; padding:0.65rem;">
+                        <i class="fa-solid fa-check"></i> रेटिंग व फीडबैक सबमिट करें
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL 6: DIGITAL WALLET & RAZORPAY TOP-UP
+         ==================================================== -->
+    <div class="modal-overlay" id="walletModal">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-wallet"></i> GatiConnect Escrow Wallet</h3>
+                <button class="btn-close" onclick="closeWalletModal()">&times;</button>
+            </div>
+            
+            <div class="wallet-balance-box">
+                <div style="font-size:0.8rem; color:#94a3b8;">Available Wallet Balance:</div>
+                <div class="wallet-big-amount">₹<span id="walletModalBalance">0.00</span></div>
+                <div style="display:flex; justify-content:center; gap:0.5rem; margin-top:0.6rem;">
+                    <button class="btn-withdraw-trigger" onclick="openPayoutModal()">
+                        <i class="fa-solid fa-money-bill-transfer"></i> बैंक/UPI में पैसे निकालें (Withdraw)
+                    </button>
+                </div>
+            </div>
+
+            <!-- ADD MONEY VIA RAZORPAY / UPI -->
+            <form id="walletTopUpForm" onsubmit="handleTopUpWallet(event)">
+                <div class="form-group">
+                    <label><strong>Add Money via Razorpay UPI / Cards (₹):</strong></label>
+                    <input type="number" id="topUpAmountInput" value="500" min="10" step="any" required>
+                </div>
+                <div class="quick-routes" style="margin-bottom:0.85rem;">
+                    <span class="quick-tag" onclick="document.getElementById('topUpAmountInput').value=200">+₹200</span>
+                    <span class="quick-tag" onclick="document.getElementById('topUpAmountInput').value=500">+₹500</span>
+                    <span class="quick-tag" onclick="document.getElementById('topUpAmountInput').value=1000">+₹1,000</span>
+                    <span class="quick-tag" onclick="document.getElementById('topUpAmountInput').value=2000">+₹2,000</span>
+                </div>
+
+                <button type="submit" class="btn-submit" style="width:100%; padding:0.65rem; background:linear-gradient(135deg, #2563eb, #1d4ed8);">
+                    <i class="fa-solid fa-lock"></i> Pay via Razorpay UPI / GPay / Cards
+                </button>
+            </form>
+
+            <div style="margin-top:1.2rem;">
+                <h4 style="font-size:0.82rem; color:#475569; margin-bottom:0.4rem;"><i class="fa-solid fa-receipt"></i> Recent Wallet Transactions:</h4>
+                <div id="walletTxnContainer" class="wallet-txn-list">
+                    <!-- Transactions -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL 7: DRIVER PAYOUT & BANK/UPI WITHDRAWAL
+         ==================================================== -->
+    <div class="modal-overlay" id="payoutModal">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-money-bill-transfer" style="color:#16a34a;"></i> कमाई निकासी (Withdraw Earnings)</h3>
+                <button class="btn-close" onclick="closePayoutModal()">&times;</button>
+            </div>
+
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:0.75rem; border-radius:8px; margin-bottom:1rem; font-size:0.8rem; color:#166534;">
+                <i class="fa-solid fa-circle-check"></i> राइड या डिलीवरी पूरी होने पर आपका पैसा सीधे आपके बैंक खाते या UPI में ट्रांसफर होगा।
+            </div>
+
+            <form id="payoutForm" onsubmit="handleWithdrawSubmit(event)">
+                <div class="form-group">
+                    <label>निकासी राशि (Amount to Withdraw ₹):</label>
+                    <input type="number" id="payoutAmountInput" placeholder="e.g. 500" min="10" step="any" required>
+                    <div style="font-size:0.72rem; color:#64748b; margin-top:0.25rem;">
+                        उपलब्ध बैलेंस: ₹<strong id="payoutAvailableBalance">0.00</strong>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>निकासी माध्यम (Transfer Method):</label>
+                    <select id="payoutMethodSelect" onchange="togglePayoutMethodInput()">
+                        <option value="UPI">📱 UPI VPA (Google Pay / PhonePe / Paytm / BHIM)</option>
+                        <option value="BANK">🏦 Bank Account Transfer (IMPS / NEFT)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="payoutUpiGroup">
+                    <label>UPI ID (VPA):</label>
+                    <input type="text" id="payoutUpiInput" placeholder="e.g. driver@okaxis / 98260XXXXX@paytm" required>
+                </div>
+
+                <div id="payoutBankGroup" style="display:none;">
+                    <div class="form-group">
+                        <label>Bank Account Number:</label>
+                        <input type="text" id="payoutBankAccInput" placeholder="e.g. 123456789012">
+                    </div>
+                    <div class="form-group">
+                        <label>IFSC Code:</label>
+                        <input type="text" id="payoutBankIfscInput" placeholder="e.g. SBIN0001234">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closePayoutModal()">Cancel</button>
+                    <button type="submit" class="btn-submit" style="background:#16a34a;">
+                        <i class="fa-solid fa-paper-plane"></i> बैंक में ट्रांसफर करें (Withdraw)
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: IN-APP REAL-TIME CHAT & BARGAINING MESSENGER -->
+    <div class="modal-overlay" id="chatModal">
+        <div class="modal-card chat-modal-card">
+            <div class="modal-header chat-header">
+                <div class="chat-user-info">
+                    <div class="creator-avatar" id="chatPartnerAvatar">U</div>
+                    <div>
+                        <h4 id="chatPartnerName">User Name</h4>
+                        <div class="chat-partner-sub" id="chatTripSummary">Trip Details</div>
+                    </div>
+                </div>
+                <button class="btn-close" onclick="closeChatModal()">&times;</button>
+            </div>
+
+            <div class="chat-messages-body" id="chatMessagesContainer">
+                <!-- Messages rendered here dynamically -->
+            </div>
+
+            <div class="chat-quick-chips">
+                <button class="chip-btn" onclick="sendQuickMessage('📍 Pick up from Main Road Colony Gate?')">📍 Main Road Gate</button>
+                <button class="chip-btn" onclick="sendQuickMessage('⏰ Are you ready at exact time?')">⏰ Ready on time?</button>
+                <button class="chip-btn" onclick="sendQuickMessage('📦 Item is packed and ready for inspection.')">📦 Ready for inspection</button>
+            </div>
+
+            <div class="chat-composer-wrap">
+                <div class="bargain-offer-toggle-bar">
+                    <label class="checkbox-label" style="font-size:0.75rem;">
+                        <input type="checkbox" id="chatIsOfferCheck" onchange="toggleChatOfferInput()">
+                        <span><i class="fa-solid fa-comments-dollar"></i> Propose Custom Price Offer (काउंटर-ऑफ़र)</span>
+                    </label>
+                    <div id="chatOfferPriceWrap" style="display:none; align-items:center; gap:0.4rem;">
+                        <span>₹</span>
+                        <input type="number" id="chatOfferPriceInput" placeholder="Offer Price" step="any" class="chat-offer-input">
+                    </div>
+                </div>
+
+                <form id="chatForm" onsubmit="handleSendChatMessage(event)" class="chat-input-row">
+                    <input type="text" id="chatTextInput" placeholder="Type a message or discuss pickup..." required autocomplete="off">
+                    <button type="submit" class="btn-send-chat"><i class="fa-solid fa-paper-plane"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================
+         MODAL: POST NEW TRIP / REQUIREMENT (DYNAMIC INTENT-AWARE WORKFLOW)
+         =================================================================== -->
+    <div class="modal-overlay" id="postModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="postModalHeaderTitle"><i class="fa-solid fa-circle-plus"></i> अपनी यात्रा या ज़रूरत पोस्ट करें</h3>
+                <button class="btn-close" onclick="closePostModal()">&times;</button>
+            </div>
+            <form id="postOfferingForm" onsubmit="handleCreateOffering(event)">
+                
+                <div class="form-group">
+                    <label>सेवा श्रेणी (Category):</label>
+                    <select id="newServiceCategory" required onchange="handleModalCategoryChange()">
+                        <option value="RIDE_SHARE">🚗 Ride Share (कार / बाइक सीट शेयरिंग)</option>
+                        <option value="DRIVER_MATCH">👨✈️ Driver Matching (ड्राइवर चाहिए या उपलब्ध है)</option>
+                        <option value="PARCEL">📦 Parcel P2P (छोटा पार्सल / टिफिन / दवाइयां)</option>
+                        <option value="CARGO">🚚 Return Cargo (छोटा हाथी / कमर्शियल लोड)</option>
+                    </select>
+                </div>
+
+                <!-- 🌟 DYNAMIC INTENT-AWARE ROLE SELECTOR CARDS -->
+                <div class="form-group">
+                    <label id="lblYourRole">आपकी भूमिका (Your Intent):</label>
+                    <div class="post-type-selector">
+                        <label class="post-role-card active" id="roleCardOffer" onclick="selectPostRole('OFFER')">
+                            <input type="radio" name="modalListingType" value="OFFER" checked onchange="handleModalCategoryChange()">
+                            <span class="custom-radio-circle"></span>
+                            <div class="role-text-box">
+                                <span class="role-title" id="roleTitleOffer">🟢 मेरे पास गाड़ी / क्षमता उपलब्ध है</span>
+                                <span class="role-desc" id="roleDescOffer">Offering Capacity / Driving</span>
+                            </div>
+                        </label>
+                        <label class="post-role-card" id="roleCardRequest" onclick="selectPostRole('REQUEST')">
+                            <input type="radio" name="modalListingType" value="REQUEST" onchange="handleModalCategoryChange()">
+                            <span class="custom-radio-circle"></span>
+                            <div class="role-text-box">
+                                <span class="role-title" id="roleTitleRequest">🟠 मुझे सामान भेजना है / सवारी या ड्राइवर चाहिए</span>
+                                <span class="role-desc" id="roleDescRequest">Posting Requirement / Need</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Scope (कार्यक्षेत्र):</label>
+                        <select id="newTripScope" required onchange="handleModalScopeChange()">
+                            <option value="INTRA_CITY">🏙️ Colony to Colony (लोकल शहर के अंदर)</option>
+                            <option value="INTER_CITY">🌐 Inter-City (शहर से शहर / हाईवे)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="vehicleModeGroup">
+                        <label id="lblVehicleMode">Vehicle Mode (वाहन प्रकार):</label>
+                        <select id="newVehicleMode" required onchange="calculateSmartFareLive()">
+                            <option value="BIKE">🛵 Bike / Scooty (Micro-delivery & Seat)</option>
+                            <option value="AUTO">🛺 Auto / E-Rickshaw</option>
+                            <option value="CAR" selected>🚗 Car / Sedan / SUV</option>
+                            <option value="MINI_TRUCK">🛻 छोटा हाथी / Tata Ace</option>
+                            <option value="TRUCK">🚚 Heavy Commercial Truck</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label id="lblFrom">From Colony / Area (कहाँ से):</label>
+                            <button type="button" class="btn-gps-autodetect" onclick="detectGPSLocationForInput('newSource')">
+                                <i class="fa-solid fa-crosshairs"></i> Auto GPS
+                            </button>
+                        </div>
+                        <input type="text" id="newSource" placeholder="e.g. Kolar Road / MP Nagar" required oninput="calculateSmartFareLive()">
+                    </div>
+                    <div class="form-group">
+                        <label id="lblTo">To Colony / Area (कहाँ तक):</label>
+                        <input type="text" id="newDestination" placeholder="e.g. Arera Colony / Indore" required oninput="calculateSmartFareLive()">
+                    </div>
+                </div>
+
+                <!-- 🌟 AUTHENTIC DATE & TIME PICKER (DAY/MONTH/YEAR & 12-HR AM/PM) -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label id="lblDepartureDate">📅 यात्रा / प्रस्थान दिनांक (Date):</label>
+                        <input type="date" id="newDepartureDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label id="lblDepartureTime">⏰ प्रस्थान समय (Time):</label>
+                        <input type="time" id="newDepartureTime" required>
+                    </div>
+                </div>
+
+                <!-- 🌟 1. DRIVER PROFILE SECTION (WHEN DRIVER_MATCH + OFFER: DRIVER AVAILABLE WITHOUT CAR) -->
+                <div id="driverAvailableSection" style="display:none;" class="driver-details-box">
+                    <div style="font-weight:800; font-size:0.85rem; color:#0f766e; margin-bottom:0.45rem;">
+                        <i class="fa-solid fa-id-card-clip"></i> वेरीफाइड ड्राइवर प्रोफ़ाइल (Driver Profile - No Car Required):
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">ड्राइविंग अनुभव (Experience):</label>
+                            <input type="text" id="driverExpInput" placeholder="e.g. 5+ वर्ष (हाईवे व शहर का अनुभव)">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">गियर अनुभव (Transmission):</label>
+                            <select id="driverTransmissionSelect">
+                                <option value="BOTH">मैनुअल व ऑटोमैटिक दोनों</option>
+                                <option value="MANUAL">सिर्फ मैनुअल (Manual)</option>
+                                <option value="AUTOMATIC">सिर्फ ऑटोमैटिक (Automatic)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.75rem;">ड्राइविंग लाइसेंस नंबर (DL Number):</label>
+                        <input type="text" id="driverDlInput" placeholder="e.g. MP04-2020-1234567">
+                    </div>
+                </div>
+
+                <!-- 🌟 2. CAR OWNER SECTION (WHEN DRIVER_MATCH + REQUEST: OWNER HAS CAR & NEEDS DRIVER) -->
+                <div id="carOwnerDriverNeedSection" style="display:none;" class="car-owner-details-box">
+                    <div style="font-weight:800; font-size:0.85rem; color:#1e40af; margin-bottom:0.45rem;">
+                        <i class="fa-solid fa-car-side"></i> गाड़ी का विवरण (Car Owner Details):
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">मेरी गाड़ी का नाम व मॉडल:</label>
+                            <input type="text" id="ownerCarModelInput" placeholder="e.g. Toyota Innova / Swift Dzire">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">गाड़ी का ट्रांसमिशन:</label>
+                            <select id="ownerCarTransmissionSelect">
+                                <option value="MANUAL">मैनुअल (Manual Gear)</option>
+                                <option value="AUTOMATIC">ऑटोमैटिक (Automatic)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SMART PARCEL / CARGO VOLUMETRIC CALCULATOR -->
+                <div id="volumetricCalculatorSection" style="display:none;">
+                    <div class="volumetric-card-box">
+                        <div style="font-weight:700; font-size:0.8rem; color:#0f766e; margin-bottom:0.35rem;">
+                            <i class="fa-solid fa-cube"></i> Smart Package Dimension & Weight Calculator:
+                        </div>
+                        
+                        <div class="volumetric-preset-chips">
+                            <span class="vol-chip active" onclick="applyVolumetricPreset(0.5, 20, 15, 5)">✉️ Envelope (<0.5kg)</span>
+                            <span class="vol-chip" onclick="applyVolumetricPreset(2.0, 30, 20, 15)">👟 Shoe Box (2kg)</span>
+                            <span class="vol-chip" onclick="applyVolumetricPreset(10.0, 50, 40, 30)">📦 Big Carton (10kg)</span>
+                            <span class="vol-chip" onclick="applyVolumetricPreset(50.0, 80, 60, 60)">🚚 Heavy Load (50kg)</span>
+                        </div>
+
+                        <div class="form-row" style="margin-top:0.45rem;">
+                            <div class="form-group">
+                                <label style="font-size:0.72rem;">Actual Weight (Kg):</label>
+                                <input type="number" id="volActualWeight" value="1.0" step="any" min="0.1" oninput="calculateSmartFareLive()">
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size:0.72rem;">Dimensions (L x W x H cm):</label>
+                                <div style="display:flex; gap:0.25rem;">
+                                    <input type="number" id="volDimL" value="20" placeholder="L" step="any" oninput="calculateSmartFareLive()">
+                                    <input type="number" id="volDimW" value="15" placeholder="W" step="any" oninput="calculateSmartFareLive()">
+                                    <input type="number" id="volDimH" value="10" placeholder="H" step="any" oninput="calculateSmartFareLive()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="smart-fare-pill" id="smartFarePreview">
+                            <span>💡 Smart Fair Fare Estimate:</span>
+                            <strong id="smartFareAmount">₹35.00</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label id="lblPrice">Price / Quoted Rate (किराया / ऑफ़र राशि ₹):</label>
+                    <input type="number" id="newPrice" placeholder="e.g. 35 or 350" required min="0" step="any">
+                </div>
+
+                <div class="form-row" id="capacityRow">
+                    <div class="form-group" id="seatsGroup">
+                        <label id="lblSeats">Available Seats (खाली सीटें):</label>
+                        <input type="number" id="newSeats" value="1" min="0" step="1">
+                    </div>
+                    <div class="form-group" id="weightGroup">
+                        <label id="lblWeight">Weight Capacity (वज़न क्षमता Kg):</label>
+                        <input type="number" id="newWeight" value="5" min="0" step="any">
+                    </div>
+                </div>
+
+                <!-- 🌟 3. DEDICATED CARGO MATERIAL DETAILS (WHEN SENDING CARGO / REQUEST) -->
+                <div id="cargoMaterialSection" style="display:none;" class="cargo-details-box">
+                    <div style="font-weight:700; font-size:0.8rem; color:#6d28d9; margin-bottom:0.4rem;">
+                        <i class="fa-solid fa-boxes-packing"></i> माल / पार्सल का विवरण (Cargo Details):
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.75rem;">सामान की प्रकृति (Material Type):</label>
+                        <input type="text" id="cargoMaterialType" placeholder="e.g. इलेक्ट्रॉनिक सामान / कपड़े / मशीनरी पार्ट्स / टिफिन">
+                    </div>
+                </div>
+
+                <!-- 🌟 4. DEDICATED VEHICLE DETAILS (WHEN OFFERING VEHICLE / RIDE / CARGO) -->
+                <div id="vehicleDetailsSection" style="display:none;" class="vehicle-details-box">
+                    <div style="font-weight:700; font-size:0.8rem; color:#1d4ed8; margin-bottom:0.4rem;">
+                        <i class="fa-solid fa-truck-pickup"></i> वाहन का विवरण (Vehicle Info):
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">वाहन नाम / मॉडल:</label>
+                            <input type="text" id="postVehicleName" placeholder="e.g. Tata Ace Gold / Swift">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">गाड़ी नंबर (Optional):</label>
+                            <input type="text" id="postVehicleNumber" placeholder="e.g. MP-04-XX-1234">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🌟 5. CONTEXTUAL PHOTO UPLOAD ENGINE -->
+                <div class="form-group">
+                    <label id="imageUploadLabel"><i class="fa-solid fa-camera"></i> <span id="txtImageUploadTitle">फोटो (Photo):</span></label>
+                    <div class="image-upload-box">
+                        <input type="file" id="imageFileInput" accept="image/*" onchange="handleImageSelected(event)">
+                        <input type="text" id="newImageUrl" placeholder="Or enter Image URL (https://...)" oninput="updateImagePreview(this.value)">
+                        <div id="imagePreviewContainer" class="image-preview" style="display:none;">
+                            <img id="imagePreviewImg" src="" alt="Preview">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="newAllowBargain" checked>
+                        <span><i class="fa-solid fa-comments-dollar"></i> Allow Price Bargaining / Negotiation (मोल-भाव की अनुमति दें)</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Description / Notes (विवरण):</label>
+                    <textarea id="newDescription" rows="2" placeholder="e.g. Verified commercial driver available for one-way or round trips."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closePostModal()">Cancel</button>
+                    <button type="submit" class="btn-submit"><i class="fa-solid fa-paper-plane"></i> Publish & View Matches</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MODAL 8: BOOK WITH INTEGRATED PAYMENT GATEWAY & ESCROW
+         ==================================================== -->
+    <div class="modal-overlay" id="bookModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="bookModalTitle"><i class="fa-solid fa-handshake"></i> Book with Escrow Protection</h3>
+                <button class="btn-close" onclick="closeBookModal()">&times;</button>
+            </div>
+            <form id="bookingForm" onsubmit="handleConfirmBooking(event)">
+                <input type="hidden" id="bookTripId">
+                <input type="hidden" id="bookCategory">
+                <input type="hidden" id="bookOriginalPrice">
+
+                <div class="trip-summary-box" id="bookTripSummary">
+                    <!-- Summary info -->
+                </div>
+
+                <div class="bargain-box" id="bargainBox">
+                    <label><i class="fa-solid fa-comments-dollar"></i> Price Negotiation / Counter Offer (मोल-भाव):</label>
+                    <div class="bargain-input-wrap">
+                        <div class="price-display-pill">Listed: ₹<span id="listedPriceDisplay">0</span></div>
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <input type="number" id="bookAgreedPrice" placeholder="Your Offer Price (₹)" step="any" required oninput="updatePaymentMethodPills()">
+                    </div>
+                    <div class="bargain-hint" id="bargainHint">You can accept the standard price or propose a fair counter-offer.</div>
+                </div>
+
+                <!-- PAYMENT GATEWAY SELECTOR -->
+                <div class="form-group">
+                    <label><strong>💳 भुगतान माध्यम चुनें (Select Payment Mode):</strong></label>
+                    <div class="payment-method-grid">
+                        <label class="pay-method-card active" id="payMethodRazorpayLabel">
+                            <input type="radio" name="bookingPaymentMethod" value="RAZORPAY_UPI" checked onchange="handlePaymentModeChange()">
+                            <div class="pay-method-content">
+                                <div style="display:flex; align-items:center; gap:0.4rem; font-weight:800; color:#1d4ed8;">
+                                    <i class="fa-solid fa-bolt"></i> Direct Razorpay UPI / Cards
+                                </div>
+                                <div style="font-size:0.72rem; color:#64748b;">
+                                    Google Pay, PhonePe, Paytm, BHIM & Cards
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="pay-method-card" id="payMethodWalletLabel">
+                            <input type="radio" name="bookingPaymentMethod" value="ESCROW_WALLET" onchange="handlePaymentModeChange()">
+                            <div class="pay-method-content">
+                                <div style="display:flex; align-items:center; gap:0.4rem; font-weight:800; color:#15803d;">
+                                    <i class="fa-solid fa-wallet"></i> In-App Escrow Wallet
+                                </div>
+                                <div style="font-size:0.72rem; color:#64748b;" id="bookWalletBalanceLabel">
+                                    Current Balance: ₹0.00
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="parcelFields" style="display:none;">
+                    <div class="form-group">
+                        <label>Item / Material Description:</label>
+                        <input type="text" id="bookItemDesc" placeholder="e.g. Tiffin Box / Urgent Medicines / Laptop Bag">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Estimated Weight (Kg):</label>
+                            <input type="number" id="bookItemWeight" value="1" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label>Receiver Phone Number:</label>
+                            <input type="text" id="bookReceiverPhone" placeholder="e.g. 9826099999">
+                        </div>
+                    </div>
+
+                    <div class="alert-box">
+                        <i class="fa-solid fa-eye"></i> <strong>Inspection Checklist:</strong> Both parties must check contents before handover and apply digital seal code.
+                    </div>
+                </div>
+
+                <div class="escrow-notice-box">
+                    <i class="fa-solid fa-shield-halved"></i> <strong>100% Zero-Fraud Escrow Protection:</strong> आपका भुगतान सुरक्षित एस्क्रो में जमा रहेगा और डिलीवरी OTP सत्यापित होने पर ही ड्राइवर को मिलेगा। यदि राइड कैंसिल होती है तो 100% रिफंड तुरंत वॉलेट में वापस मिलेगा।
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeBookModal()">Cancel</button>
+                    <button type="submit" id="btnConfirmPayBooking" class="btn-submit" style="background:#16a34a;">
+                        <i class="fa-solid fa-lock"></i> Pay & Lock in Escrow
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         15. DYNAMIC QR CODE DISPLAY MODAL (FOR PASSENGER / SENDER)
+         ======================================================= -->
+    <div class="modal" id="qrCodeDisplayModal">
+        <div class="modal-content" style="max-width:380px; text-align:center;">
+            <div class="modal-header" style="justify-content:center; position:relative;">
+                <h3 style="font-size:1.1rem; color:#1e293b;"><i class="fa-solid fa-qrcode"></i> <span id="qrModalTitle">Verification QR Code</span></h3>
+                <button class="btn-close" onclick="closeQRCodeDisplayModal()" style="position:absolute; right:1rem;">&times;</button>
+            </div>
+            <div style="padding:1rem 0.5rem;">
+                <p style="font-size:0.78rem; color:#64748b; margin-bottom:1rem;" id="qrModalSubtitle">
+                    ड्राइवर को यह QR कोड स्कैन करने के लिए दिखाएं:
+                </p>
+                <div id="qrCodeCanvasContainer" style="display:flex; justify-content:center; align-items:center; padding:1rem; background:#f8fafc; border:2px dashed #cbd5e1; border-radius:16px; margin:0 auto; width:220px; height:220px;">
+                    <!-- QR rendered dynamically here -->
+                </div>
+                
+                <div style="margin-top:1.2rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:0.75rem;">
+                    <div style="font-size:0.75rem; color:#15803d; font-weight:700;">Manual 4-Digit OTP Code (यदि स्कैनर न चले):</div>
+                    <div style="font-size:1.6rem; font-weight:800; letter-spacing:4px; color:#166534; margin-top:0.2rem;" id="qrFallbackOtpCode">
+                        1234
+                    </div>
+                </div>
+
+                <div id="qrSealBox" style="display:none; margin-top:0.6rem; font-size:0.75rem; color:#0f766e; background:#f0fdfa; padding:0.4rem; border-radius:8px; border:1px solid #99f6e4;">
+                    🔒 Digital Seal Code: <strong id="qrSealCodeVal">-</strong>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content:center;">
+                <button type="button" class="btn-submit" onclick="closeQRCodeDisplayModal()" style="width:100%;">
+                    <i class="fa-solid fa-check"></i> Done (हो गया)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         16. QR CODE CAMERA SCANNER MODAL (FOR DRIVER / CARRIER)
+         ======================================================= -->
+    <div class="modal" id="qrScannerModal">
+        <div class="modal-content" style="max-width:440px;">
+            <div class="modal-header">
+                <h3 style="font-size:1.1rem; color:#1e293b;"><i class="fa-solid fa-camera"></i> <span id="qrScannerTitle">Scan Passenger QR Code</span></h3>
+                <button class="btn-close" onclick="closeQRScannerModal()">&times;</button>
+            </div>
+            <div style="padding:1rem 0.5rem; text-align:center;">
+                <p style="font-size:0.78rem; color:#64748b; margin-bottom:0.75rem;">
+                    यात्री/सेंडर के फोन पर दिख रहे QR कोड पर कैमरा केंद्रित करें:
+                </p>
+                <div id="qrReaderViewfinder" style="width:100%; border-radius:12px; overflow:hidden; border:2px solid #2563eb; background:#000; min-height:260px;"></div>
+                <div id="qrScanStatusMsg" style="font-size:0.78rem; color:#2563eb; font-weight:700; margin-top:0.6rem;">
+                    📷 कैमरा सक्रिय है... QR कोड दिखाएं
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeQRScannerModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- FLOATING QUICK SOS & SAFETY HELPLINE WIDGET -->
+    <div class="floating-sos-pill" onclick="openSosModal(null)" title="Emergency SOS & 24/7 Safety Helpline">
+        <i class="fa-solid fa-shield-heart" style="font-size:1rem; animation: pulse 1.5s infinite;"></i>
+        <span>🚨 SOS / Help</span>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
