@@ -14,11 +14,12 @@ class VercelPathFixMiddleware:
 
     async def __call__(self, scope, receive, send):
         if scope["type"] in ("http", "websocket"):
-            path = scope.get("path", "")
-            if path.startswith("/api/index.py"):
-                scope["path"] = path[len("/api/index.py"):] or "/"
-            elif path.startswith("/api/index"):
-                scope["path"] = path[len("/api/index"):] or "/"
+            headers = dict(scope.get("headers", []))
+            matched_path = headers.get(b"x-matched-path", b"").decode("utf-8")
+            if matched_path:
+                scope["path"] = matched_path
+            elif scope.get("path", "").startswith("/api/index"):
+                scope["path"] = "/"
         await self.app(scope, receive, send)
 
 wrapped_app = VercelPathFixMiddleware(app)
