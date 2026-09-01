@@ -262,6 +262,8 @@ def run_tests():
     # 9. AUDIT 📱 DYNAMIC QR CODE HANDOVER & ESCROW RELEASE
     # =========================================================================
     print("\n--- 9. AUDITING 📱 DYNAMIC QR CODE HANDOVER & RELEASE ---")
+    passenger.wallet_balance += 5000.0
+    db.commit()
     qr_trip = db.query(TripDB).filter(TripDB.status == "AVAILABLE").first()
     qr_booking = request_booking(
         BookingCreate(

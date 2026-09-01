@@ -911,6 +911,14 @@ async function openUserProfileHub(initialTab = "HISTORY") {
         pill.innerHTML = `<button type="button" class="btn-kyc-trigger" onclick="openKycModal()" style="font-size:0.68rem; padding:0.15rem 0.45rem;"><i class="fa-solid fa-shield"></i> Verify Aadhaar</button>`;
     }
     
+    // Display Saved Vehicle & Driving Details in Profile Hub
+    const hubVeh = document.getElementById("hubSavedVehicleDisplay");
+    const hubVehNum = document.getElementById("hubSavedVehicleNumDisplay");
+    const hubDl = document.getElementById("hubSavedDlDisplay");
+    if (hubVeh) hubVeh.textContent = currentUser.vehicle_name || "Not set (कोई गाड़ी नहीं)";
+    if (hubVehNum) hubVehNum.textContent = currentUser.vehicle_number || "Not set";
+    if (hubDl) hubDl.textContent = currentUser.dl_number || "Not set (लाइसेंस नहीं)";
+
     // 2. Populate Quick Stats
     document.getElementById("profileHubWalletVal").textContent = (currentUser.wallet_balance || 0).toFixed(2);
     document.getElementById("profilePassbookBalance").textContent = (currentUser.wallet_balance || 0).toFixed(2);
@@ -2669,6 +2677,50 @@ function openPostModal() {
     
     selectPostRole(defaultRole);
     handleModalScopeChange();
+
+    // 🪄 SMART AUTO-FILL FROM USER PROFILE (FAST & OPTIONAL)
+    const autofillBadge = document.getElementById("postAutoFillNotice");
+    if (currentUser) {
+        let hasAutofilled = false;
+
+        // 1. Pre-fill Driver DL & details
+        const dlInput = document.getElementById("driverDlInput");
+        if (dlInput && currentUser.dl_number && !dlInput.value) {
+            dlInput.value = currentUser.dl_number;
+            hasAutofilled = true;
+        }
+
+        // 2. Pre-fill Vehicle Name & Number
+        const vehNameInput = document.getElementById("postVehicleName");
+        if (vehNameInput && currentUser.vehicle_name && !vehNameInput.value) {
+            vehNameInput.value = currentUser.vehicle_name;
+            hasAutofilled = true;
+        }
+        const vehNumInput = document.getElementById("postVehicleNumber");
+        if (vehNumInput && currentUser.vehicle_number && !vehNumInput.value) {
+            vehNumInput.value = currentUser.vehicle_number;
+            hasAutofilled = true;
+        }
+
+        // 3. Pre-fill Owner Car Model
+        const ownerCarInput = document.getElementById("ownerCarModelInput");
+        if (ownerCarInput && currentUser.vehicle_name && !ownerCarInput.value) {
+            ownerCarInput.value = currentUser.vehicle_name;
+            hasAutofilled = true;
+        }
+
+        // 4. Pre-fill Vehicle Mode
+        const vehModeSelect = document.getElementById("newVehicleMode");
+        if (vehModeSelect && currentUser.vehicle_type) {
+            vehModeSelect.value = currentUser.vehicle_type;
+        }
+
+        if (autofillBadge) {
+            autofillBadge.style.display = hasAutofilled ? "flex" : "none";
+        }
+    } else {
+        if (autofillBadge) autofillBadge.style.display = "none";
+    }
 }
 
 function closePostModal() {

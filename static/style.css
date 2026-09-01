@@ -1796,3 +1796,27 @@ body {
     color: #94a3b8;
     margin-top: 0.15rem;
 }
+
+
+/* AUTO-FILL NOTICE PILL */
+.autofill-notice-pill {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 1px solid #86efac;
+    color: #166534;
+    padding: 0.45rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.profile-vehicle-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.85rem;
+    margin: 0.8rem 0;
+}
