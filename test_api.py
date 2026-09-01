@@ -9,13 +9,13 @@ from main import (
     seed_sample_data, list_users, get_trips, request_booking, create_trip,
     verify_handover, verify_completion, get_wallet_balance, get_trip_matches,
     create_payment_order, verify_payment, withdraw_driver_earnings,
-    send_aadhaar_otp, verify_aadhaar_otp, verify_dl, calculate_dynamic_fare, get_trip_route_coordinates,
+    send_aadhaar_otp, verify_aadhaar_otp, verify_dl, verify_vehicle_rc, calculate_dynamic_fare, get_trip_route_coordinates,
     cancel_booking, respond_bargain, toggle_driver_duty,
     get_admin_metrics, get_admin_users, admin_toggle_user_kyc, get_admin_bookings,
     admin_force_refund_booking, admin_force_release_booking, get_admin_payouts, admin_approve_payout,
     verify_qr_code, QRVerifyRequest,
     CreatePaymentOrderRequest, VerifyPaymentRequest, WithdrawRequest,
-    SendAadhaarOTPRequest, VerifyAadhaarOTPRequest, VerifyDLRequest, FareCalculationRequest,
+    SendAadhaarOTPRequest, VerifyAadhaarOTPRequest, VerifyDLRequest, VerifyRCRequest, FareCalculationRequest,
     CancelBookingRequest, RespondBargainRequest,
     TripCreate, BookingCreate, OTPVerify, ReviewCreate
 )
@@ -289,10 +289,23 @@ def run_tests():
     print(f"[+] QR Delivery Scanned: {qr_res_2['message']} (Payout: ₹{qr_res_2['payout_amount']})")
     assert qr_res_2["status"] == "COMPLETED"
     assert qr_res_2["escrow_status"] == "RELEASED"
+
+    # =========================================================================
+    # 10. AUDIT 🚗 VEHICLE RC (VAHAN) & RTO DECODING
+    # =========================================================================
+    print("\n--- 10. AUDITING 🚗 VAHAN RC & RTO DECODER ---")
+    rc_res = verify_vehicle_rc(
+        VerifyRCRequest(user_id=driver_user.id, rc_number="MP04AB1234", vehicle_name="Tata Ace Gold"),
+        db=db
+    )
+    print(f"[+] RC Verified: {rc_res['message']} (RTO: {rc_res['rto_location']})")
+    assert rc_res["status"] == "SUCCESS"
+    assert rc_res["rto_location"] == "Bhopal RTO, Madhya Pradesh"
+    assert driver_user.is_vehicle_verified == True
     
     db.close()
     print("\n==========================================================================================")
-    print("🎯 ALL 4 CATEGORIES, QR SCANNER, ESCROW & ADMIN PHASES PASSED 100% WITHOUT ANY ERROR!")
+    print("🎯 ALL 4 CATEGORIES, RC VAHAN, QR SCANNER, ESCROW & ADMIN PHASES PASSED 100% WITHOUT ANY ERROR!")
     print("==========================================================================================")
 
 if __name__ == "__main__":

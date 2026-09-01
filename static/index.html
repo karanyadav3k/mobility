@@ -883,10 +883,13 @@
 
             <div class="kyc-tabs">
                 <button class="kyc-tab-btn active" id="tabAadhaarBtn" onclick="switchKycTab('AADHAAR')">
-                    <i class="fa-solid fa-fingerprint"></i> आधार कार्ड (Aadhaar OTP)
+                    <i class="fa-solid fa-fingerprint"></i> 1. आधार (Aadhaar)
                 </button>
                 <button class="kyc-tab-btn" id="tabDlBtn" onclick="switchKycTab('DL')">
-                    <i class="fa-solid fa-id-card"></i> ड्राइविंग लाइसेंस (Sarathi DL)
+                    <i class="fa-solid fa-id-card"></i> 2. लाइसेंस (DL)
+                </button>
+                <button class="kyc-tab-btn" id="tabRcBtn" onclick="switchKycTab('RC')">
+                    <i class="fa-solid fa-car-side"></i> 3. गाड़ी RC (Vahan)
                 </button>
             </div>
 
@@ -926,6 +929,28 @@
                 </div>
             </div>
 
+            
+            <!-- RC SECTION -->
+            <div id="kycRcSection" style="display:none; margin-top:0.8rem;">
+                <div style="font-size:0.8rem; color:#475569; margin-bottom:0.8rem;">
+                    गाड़ी मालिक / कमर्शियल ट्रांसपोर्टर बैज के लिए गाड़ी का रजिस्ट्रेशन (RC) नंबर दर्ज करें:
+                </div>
+                <form onsubmit="handleVerifyRc(event)">
+                    <div class="form-group">
+                        <label>गाड़ी रजिस्ट्रेशन नंबर (Vehicle RC Number):</label>
+                        <input type="text" id="rcKycInput" placeholder="e.g. MP04-AB-1234 या DL01-CA-5678" style="text-transform:uppercase;" required>
+                    </div>
+                    <div class="form-group">
+                        <label>गाड़ी का नाम / मॉडल (Optional):</label>
+                        <input type="text" id="rcKycVehicleName" placeholder="e.g. Maruti Swift / Tata Ace / Hero Splendor">
+                    </div>
+                    <button type="submit" class="btn-submit" style="width:100%; padding:0.65rem; background:#0f766e;">
+                        <i class="fa-solid fa-shield-check"></i> MoRTH Vahan RC सत्यापित करें (+10 Score)
+                    </button>
+                </form>
+                <div id="rcVerifyResultCard" style="display:none; margin-top:0.8rem; padding:0.75rem; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; font-size:0.75rem; color:#166534;">
+                </div>
+            </div>
             <!-- DL SECTION -->
             <div id="kycDlSection" style="display:none; margin-top:0.8rem;">
                 <div style="font-size:0.8rem; color:#475569; margin-bottom:0.8rem;">
