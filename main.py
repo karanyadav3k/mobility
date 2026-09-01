@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Depends, WebSocket, WebSocketDisconnect, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
+from fastapi.responses import Response, FileResponse, JSONResponse, HTMLResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -1706,3 +1706,34 @@ def serve_privacy():
         with open(privacy_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse(content="<h1>Privacy policy available at /static/privacy.html</h1>")
+# --- STATIC FILE SERVING & SPA ROUTING ---
+@app.get("/static/{file_path:path}")
+def serve_static_file(file_path: str):
+    fpath = os.path.join(STATIC_DIR, file_path)
+    if os.path.exists(fpath) and os.path.isfile(fpath):
+        media_type = "text/plain"
+        if file_path.endswith(".css"): media_type = "text/css"
+        elif file_path.endswith(".js"): media_type = "application/javascript"
+        elif file_path.endswith(".png"): media_type = "image/png"
+        elif file_path.endswith(".jpg") or file_path.endswith(".jpeg"): media_type = "image/jpeg"
+        elif file_path.endswith(".svg"): media_type = "image/svg+xml"
+        elif file_path.endswith(".json"): media_type = "application/json"
+        elif file_path.endswith(".html"): media_type = "text/html"
+        elif file_path.endswith(".ico"): media_type = "image/x-icon"
+        
+        with open(fpath, "rb") as f:
+            return Response(content=f.read(), media_type=media_type)
+    raise HTTPException(status_code=404, detail="File not found")
+
+@app.get("/{rest_of_path:path}", response_class=HTMLResponse)
+def serve_spa_catchall(rest_of_path: str = ""):
+    if rest_of_path == "admin":
+        admin_path = os.path.join(STATIC_DIR, "admin.html")
+        if os.path.exists(admin_path):
+            with open(admin_path, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+    index_path = os.path.join(STATIC_DIR, "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>GatiConnect Backend Running</h1>")
