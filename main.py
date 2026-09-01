@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Depends, WebSocket, WebSocketDisconnect, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -1503,11 +1503,13 @@ class AdminBroadcastRequest(BaseModel):
     message: str
     target_role: Optional[str] = "ALL"
 
-@app.get("/admin")
+@app.get("/admin", response_class=HTMLResponse)
 def serve_admin_portal():
     admin_path = os.path.join(STATIC_DIR, "admin.html")
-    if os.path.exists(admin_path): return FileResponse(admin_path)
-    return {"status": "Online", "message": "Admin portal available at /static/admin.html"}
+    if os.path.exists(admin_path):
+        with open(admin_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>Admin portal available at /static/admin.html</h1>")
 
 @app.get("/api/admin/metrics")
 def get_admin_metrics(db: Session = Depends(get_db)):
@@ -1675,14 +1677,18 @@ if os.path.exists(STATIC_DIR): app.mount("/static", StaticFiles(directory=STATIC
 WELL_KNOWN_DIR = os.path.join(STATIC_DIR, ".well-known")
 if os.path.exists(WELL_KNOWN_DIR): app.mount("/.well-known", StaticFiles(directory=WELL_KNOWN_DIR), name="well-known")
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def serve_ui():
     index_path = os.path.join(STATIC_DIR, "index.html")
-    if os.path.exists(index_path): return FileResponse(index_path)
-    return {"status": "Online", "message": "GatiConnect Backend Running."}
+    if os.path.exists(index_path):
+        with open(index_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>GatiConnect Backend Running</h1>")
 
-@app.get("/privacy")
+@app.get("/privacy", response_class=HTMLResponse)
 def serve_privacy():
     privacy_path = os.path.join(STATIC_DIR, "privacy.html")
-    if os.path.exists(privacy_path): return FileResponse(privacy_path)
-    return {"status": "Online", "message": "Privacy policy available at /static/privacy.html"}
+    if os.path.exists(privacy_path):
+        with open(privacy_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>Privacy policy available at /static/privacy.html</h1>")
