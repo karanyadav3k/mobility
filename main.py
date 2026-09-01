@@ -21,6 +21,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 # Load environment variables from .env file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if os.path.basename(BASE_DIR) == "api":
+    BASE_DIR = os.path.dirname(BASE_DIR)
 env_file = os.path.join(BASE_DIR, ".env")
 if os.path.exists(env_file):
     with open(env_file, "r", encoding="utf-8") as f:
@@ -1491,11 +1493,16 @@ def seed_sample_data(db: Session = Depends(get_db)):
 
 @app.on_event("startup")
 def startup_populate():
-    db = SessionLocal()
     try:
-        if db.query(UserDB).count() == 0: seed_sample_data(db)
-    finally:
-        db.close()
+        Base.metadata.create_all(bind=engine)
+        db = SessionLocal()
+        try:
+            if db.query(UserDB).count() == 0:
+                seed_sample_data(db)
+        finally:
+            db.close()
+    except Exception as e:
+        print("[STARTUP WARNING]", e)
 
 # --- 👑 ADMIN MASTER CONTROL & BACKOFFICE APIS ---
 class AdminBroadcastRequest(BaseModel):
