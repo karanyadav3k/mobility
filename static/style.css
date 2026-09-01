@@ -1820,3 +1820,55 @@ body {
     padding: 0.85rem;
     margin: 0.8rem 0;
 }
+
+
+/* TRANSPARENT TRUST PILLS & CHECKLIST */
+.trust-pill-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.trust-pill-mini.trust-verified {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.trust-pill-mini.trust-gold {
+    background: #fefce8;
+    color: #854d0e;
+    border: 1px solid #fef08a;
+}
+
+.trust-checklist-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem;
+    margin: 0.75rem 0;
+}
+
+.trust-check-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.76rem;
+    color: #334155;
+    margin-bottom: 0.35rem;
+}
+
+.trust-check-item.verified {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.trust-check-item.unverified {
+    color: #94a3b8;
+}

@@ -1271,15 +1271,68 @@ function closeKycModal() {
 function switchKycTab(tab) {
     const aBtn = document.getElementById("tabAadhaarBtn");
     const dBtn = document.getElementById("tabDlBtn");
+    const rBtn = document.getElementById("tabRcBtn");
     const aSec = document.getElementById("kycAadhaarSection");
     const dSec = document.getElementById("kycDlSection");
+    const rSec = document.getElementById("kycRcSection");
     
+    if (aBtn) aBtn.classList.remove("active");
+    if (dBtn) dBtn.classList.remove("active");
+    if (rBtn) rBtn.classList.remove("active");
+    if (aSec) aSec.style.display = "none";
+    if (dSec) dSec.style.display = "none";
+    if (rSec) rSec.style.display = "none";
+
     if (tab === 'AADHAAR') {
-        aBtn.classList.add("active"); dBtn.classList.remove("active");
-        aSec.style.display = "block"; dSec.style.display = "none";
-    } else {
-        dBtn.classList.add("active"); aBtn.classList.remove("active");
-        dSec.style.display = "block"; aSec.style.display = "none";
+        if (aBtn) aBtn.classList.add("active");
+        if (aSec) aSec.style.display = "block";
+    } else if (tab === 'DL') {
+        if (dBtn) dBtn.classList.add("active");
+        if (dSec) dSec.style.display = "block";
+    } else if (tab === 'RC') {
+        if (rBtn) rBtn.classList.add("active");
+        if (rSec) rSec.style.display = "block";
+    }
+}
+
+async function handleVerifyRc(e) {
+    e.preventDefault();
+    if (!currentUser) return;
+    const rcVal = document.getElementById("rcKycInput").value.trim();
+    const vehName = document.getElementById("rcKycVehicleName") ? document.getElementById("rcKycVehicleName").value.trim() : "";
+    if (!rcVal) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/kyc/verify-rc`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id: currentUser.id, rc_number: rcVal, vehicle_name: vehName })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            alert(`RC Verification Failed: ${data.detail || "Invalid RC Number"}`);
+            return;
+        }
+
+        playAudioSound("CHIME");
+        currentUser = data.user;
+        updateHeaderUserWidget();
+        await loadUsers();
+
+        const resultCard = document.getElementById("rcVerifyResultCard");
+        if (resultCard) {
+            resultCard.style.display = "block";
+            resultCard.innerHTML = `
+                <div style="font-weight:800; font-size:0.85rem; color:#15803d; margin-bottom:0.25rem;"><i class="fa-solid fa-circle-check"></i> ${data.rc_number} Verified!</div>
+                <div><strong>RTO Authority:</strong> ${data.rto_location}</div>
+                <div><strong>Insurance:</strong> ${data.insurance_status}</div>
+                <div><strong>Fitness:</strong> ${data.fitness_valid}</div>
+                <div style="margin-top:0.35rem; color:#0369a1;"><strong>Trust Score:</strong> +10 Points (${data.trust_score}/100)</div>
+            `;
+        }
+        alert(data.message);
+    } catch (err) {
+        console.error("RC KYC Error:", err);
+        alert("RC सत्यापन में त्रुटि आई। कृपया पुनः प्रयास करें।");
     }
 }
 
@@ -2016,11 +2069,15 @@ function renderCategoryFeed(items) {
                         <div class="creator-info">
                             <div class="creator-avatar">${c.name.charAt(0)}</div>
                             <div>
-                                <div class="creator-name">${c.name}</div>
-                                <div class="creator-badges">
-                                    <span><i class="fa-solid fa-shield-check"></i> ${c.trust_score}/100</span>
-                                    ${aadhaarBadge}
-                                    <span><i class="fa-solid fa-star" style="color:#eab308;"></i> ${c.rating}</span>
+                                <div style="display:flex; align-items:center; gap:0.4rem;">
+                                    <div class="creator-name">${c.name}</div>
+                                    <span style="font-size:0.7rem; color:#eab308; font-weight:700;"><i class="fa-solid fa-star"></i> ${c.rating}</span>
+                                </div>
+                                <div class="creator-badges" style="display:flex; flex-wrap:wrap; gap:0.3rem; margin-top:0.25rem;">
+                                    <span class="trust-pill-mini ${c.trust_score >= 85 ? 'trust-gold' : 'trust-verified'}"><i class="fa-solid fa-shield-halved"></i> Trust ${c.trust_score}/100</span>
+                                    ${c.is_aadhaar_verified ? '<span class="trust-pill-mini trust-verified"><i class="fa-solid fa-fingerprint"></i> Aadhaar</span>' : '<span class="trust-pill-mini" style="opacity:0.6;"><i class="fa-regular fa-circle"></i> ID</span>'}
+                                    ${(c.is_dl_verified || c.dl_number) ? '<span class="trust-pill-mini trust-verified"><i class="fa-solid fa-id-card"></i> DL</span>' : ''}
+                                    ${(c.is_vehicle_verified || c.vehicle_number) ? '<span class="trust-pill-mini trust-verified"><i class="fa-solid fa-car-side"></i> RC</span>' : ''}
                                 </div>
                             </div>
                         </div>
