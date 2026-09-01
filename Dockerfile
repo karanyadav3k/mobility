@@ -1,32 +1,26 @@
-# Production Dockerfile for GatiConnect
+# Production Dockerfile for GatiConnect (Hugging Face Spaces & 24/7 Cloud)
 FROM python:3.11-slim
 
-# Prevent Python from writing .pyc files & buffer stdout/stderr
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PORT=7860
 
 WORKDIR /app
 
-# Install system dependencies for PostgreSQL and health checks
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libpq-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends     gcc     curl     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application files
-COPY . .
+# Create standard user for container security
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
 
-# Expose port
-EXPOSE 8080
+WORKDIR $HOME/app
+COPY --chown=user . $HOME/app
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/api/health || exit 1
+EXPOSE 7860
 
-# Start production server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
