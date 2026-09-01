@@ -8,19 +8,22 @@ if root_path not in sys.path:
 from mangum import Mangum
 from main import app
 
-class VercelPathFixMiddleware:
+class VercelScopeRouter:
     def __init__(self, app):
         self.app = app
 
     async def __call__(self, scope, receive, send):
         if scope["type"] in ("http", "websocket"):
-            headers = dict(scope.get("headers", []))
-            matched_path = headers.get(b"x-matched-path", b"").decode("utf-8")
-            if matched_path:
-                scope["path"] = matched_path
-            elif scope.get("path", "").startswith("/api/index"):
+            p = scope.get("path", "")
+            if p in ("/api/index.py", "/api/index", "/api", ""):
                 scope["path"] = "/"
+            elif p.startswith("/api/index.py/"):
+                scope["path"] = p[len("/api/index.py"):]
+            elif p.startswith("/api/index/"):
+                scope["path"] = p[len("/api/index"):]
+            elif p.startswith("/api/"):
+                # keep original API path
+                pass
         await self.app(scope, receive, send)
 
-wrapped_app = VercelPathFixMiddleware(app)
-handler = Mangum(wrapped_app, lifespan="off")
+handler = Mangum(VercelScopeRouter(app), lifespan="off")
