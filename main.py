@@ -1729,3 +1729,9 @@ def serve_static_file(file_path: str):
         with open(fpath, "rb") as f:
             return Response(content=f.read(), media_type=media_type)
     raise HTTPException(status_code=404, detail="File not found")
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8080))
+    print(f"[*] Starting GatiConnect Mobility Server on port {port}...")
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
