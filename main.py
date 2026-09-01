@@ -30,8 +30,9 @@ if os.path.exists(env_file):
                 k, v = line.split("=", 1)
                 os.environ[k.strip()] = v.strip()
 
-# 1. DATABASE SETUP
+# 1. DATABASE & SERVERLESS SETUP
 RAW_DB_URL = os.getenv("DATABASE_URL", "").strip()
+IS_VERCEL = bool(os.getenv("VERCEL"))
 
 if RAW_DB_URL:
     if RAW_DB_URL.startswith("postgres://"):
@@ -40,7 +41,18 @@ if RAW_DB_URL:
         SQLALCHEMY_DATABASE_URL = RAW_DB_URL
     engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
 else:
-    SQLALCHEMY_DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'mobility_platform.db')}"
+    if IS_VERCEL:
+        tmp_db = "/tmp/mobility_platform.db"
+        src_db = os.path.join(BASE_DIR, "mobility_platform.db")
+        if not os.path.exists(tmp_db) and os.path.exists(src_db):
+            try:
+                import shutil
+                shutil.copyfile(src_db, tmp_db)
+            except Exception:
+                pass
+        SQLALCHEMY_DATABASE_URL = f"sqlite:///{tmp_db}"
+    else:
+        SQLALCHEMY_DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'mobility_platform.db')}"
     engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -50,9 +62,15 @@ Base = declarative_base()
 OTP_STORE = {}
 AADHAAR_OTP_STORE = {}
 
-# Ensure uploads directory
-UPLOAD_DIR = os.path.join(BASE_DIR, "static", "uploads")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Ensure uploads directory (safe for serverless read-only filesystems)
+if IS_VERCEL:
+    UPLOAD_DIR = "/tmp/uploads"
+else:
+    UPLOAD_DIR = os.path.join(BASE_DIR, "static", "uploads")
+try:
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+except Exception:
+    pass
 
 # --- DATABASE MODELS ---
 
