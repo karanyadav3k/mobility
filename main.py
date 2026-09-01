@@ -1706,7 +1706,7 @@ def serve_privacy():
         with open(privacy_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse(content="<h1>Privacy policy available at /static/privacy.html</h1>")
-# --- STATIC FILE SERVING & SPA ROUTING ---
+# --- STATIC FILE SERVING ---
 @app.get("/static/{file_path:path}")
 def serve_static_file(file_path: str):
     fpath = os.path.join(STATIC_DIR, file_path)
@@ -1724,16 +1724,3 @@ def serve_static_file(file_path: str):
         with open(fpath, "rb") as f:
             return Response(content=f.read(), media_type=media_type)
     raise HTTPException(status_code=404, detail="File not found")
-
-@app.get("/{rest_of_path:path}", response_class=HTMLResponse)
-def serve_spa_catchall(rest_of_path: str = ""):
-    if rest_of_path == "admin":
-        admin_path = os.path.join(STATIC_DIR, "admin.html")
-        if os.path.exists(admin_path):
-            with open(admin_path, "r", encoding="utf-8") as f:
-                return HTMLResponse(content=f.read())
-    index_path = os.path.join(STATIC_DIR, "index.html")
-    if os.path.exists(index_path):
-        with open(index_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h1>GatiConnect Backend Running</h1>")
