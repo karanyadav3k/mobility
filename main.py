@@ -286,7 +286,22 @@ class ConnectionManager:
 
 ws_manager = ConnectionManager()
 
+_DB_INITIALIZED = False
+
 def get_db():
+    global _DB_INITIALIZED
+    if not _DB_INITIALIZED:
+        try:
+            Base.metadata.create_all(bind=engine)
+            init_db = SessionLocal()
+            try:
+                if init_db.query(UserDB).count() == 0:
+                    seed_sample_data(init_db)
+            finally:
+                init_db.close()
+            _DB_INITIALIZED = True
+        except Exception as e:
+            print("[DB INIT NOTICE]", e)
     db = SessionLocal()
     try:
         yield db
