@@ -1122,6 +1122,11 @@ def get_user_detail(user_id: int, db: Session = Depends(get_db)):
     return user
 
 # --- HEALTHCHECK ---
+
+@app.get("/health")
+def get_health_alias(db: Session = Depends(get_db)):
+    return healthcheck(db)
+
 @app.get("/api/health")
 def health_check(db: Session = Depends(get_db)):
     try:
